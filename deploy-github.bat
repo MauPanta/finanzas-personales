@@ -16,11 +16,11 @@ git commit -m "Aplicación de finanzas personales completa"
 rem Configurar rama principal
 git branch -M main
 
-rem Conectar con repositorio remoto (CAMBIAR por tu URL)
-rem git remote add origin https://github.com/TU-USUARIO/finanzas-personales.git
+rem Conectar con repositorio remoto
+git remote add origin https://github.com/maupanta/finanzas-personales.git
 
 rem Subir archivos
-rem git push -u origin main
+git push -u origin main
 
 echo ✅ Archivos preparados para subir a GitHub
 echo 📝 Recuerda cambiar la URL del repositorio en este script
