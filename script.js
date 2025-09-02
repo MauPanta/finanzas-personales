@@ -108,7 +108,9 @@ class FinanceManager {
             btn.addEventListener('click', (e) => {
                 this.switchChart(e.target.dataset.chart);
             });
+        });
     }
+
     // Mostrar/ocultar configuración quincenal
     setupRecurringFrequency() {
         document.getElementById('recurring-frequency').addEventListener('change', (e) => {
@@ -150,6 +152,11 @@ class FinanceManager {
         const date = document.getElementById('income-date').value;
         const method = document.getElementById('income-method').value;
 
+        if (!description || !amount || !category || !date || !method) {
+            alert('Por favor completa todos los campos');
+            return;
+        }
+
         const transaction = {
             id: Date.now().toString(),
             type: 'income',
@@ -168,7 +175,9 @@ class FinanceManager {
         this.updateSummaryOptimized(transaction);
         this.updateTransactionsTable();
         this.clearForm('income-form');
-        this.showNotification('Ingreso agregado exitosamente', 'success');
+        
+        // Mostrar mensaje de confirmación
+        alert('✅ Operación grabada - Ingreso agregado exitosamente');
         
         // Actualizar gráficos de forma diferida
         setTimeout(() => {
@@ -184,6 +193,11 @@ class FinanceManager {
         const category = document.getElementById('expense-category').value;
         const date = document.getElementById('expense-date').value;
         const method = document.getElementById('expense-method').value;
+
+        if (!description || !amount || !category || !date || !method) {
+            alert('Por favor completa todos los campos');
+            return;
+        }
 
         const transaction = {
             id: Date.now().toString(),
@@ -203,7 +217,9 @@ class FinanceManager {
         this.updateSummaryOptimized(transaction);
         this.updateTransactionsTable();
         this.clearForm('expense-form');
-        this.showNotification('Egreso agregado exitosamente', 'success');
+        
+        // Mostrar mensaje de confirmación
+        alert('✅ Operación grabada - Egreso agregado exitosamente');
         
         // Actualizar gráficos de forma diferida
         setTimeout(() => {
@@ -621,7 +637,8 @@ class FinanceManager {
                         }
                     }
                 },
-            });
+            }
+        });
     }
 
     updateComparisonChart() {
