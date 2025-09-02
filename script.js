@@ -108,7 +108,9 @@ class FinanceManager {
             btn.addEventListener('click', (e) => {
                 this.switchChart(e.target.dataset.chart);
             });
-        // Mostrar/ocultar configuración quincenal
+    }
+    // Mostrar/ocultar configuración quincenal
+    setupRecurringFrequency() {
         document.getElementById('recurring-frequency').addEventListener('change', (e) => {
             const biweeklyConfig = document.getElementById('biweekly-config');
             if (e.target.value === 'quincenal') {
@@ -1619,8 +1621,14 @@ function loadSampleData() {
     }
 }
 
+// Inicializar la aplicación
+let financeManager;
+
 // Agregar botón de datos de ejemplo al header
 document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar el gestor de finanzas
+    financeManager = new FinanceManager();
+    
     const header = document.querySelector('.header');
     const sampleButton = document.createElement('button');
     sampleButton.innerHTML = '<i class="fas fa-database"></i> Cargar Datos de Ejemplo';
