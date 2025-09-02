@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Guía de Importación/Exportación</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #667eea;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .export-step {
+            border-left-color: #28a745;
+            background: #f8fff9;
+        }
+        .import-step {
+            border-left-color: #007bff;
+            background: #f8fbff;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        .scenario {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .arrow {
+            font-size: 2em;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📤📥 Guía: Importación y Exportación de Datos</h1>
+            <p>Transfiere tus datos financieros entre computadoras fácilmente</p>
+        </div>
+
+        <div class="step export-step">
+            <h2><span class="emoji">📤</span>EXPORTACIÓN - Crear Backup</h2>
+            <h3>Paso a Paso:</h3>
+            <ol>
+                <li><strong>Ve a la sección "Historial de Transacciones"</strong></li>
+                <li><strong>Haz clic en el botón "📥 Exportar"</strong></li>
+                <li><strong>Se descarga automáticamente:</strong> <code>finanzas-backup-2025-08-29.json</code></li>
+                <li><strong>Guarda el archivo</strong> en un lugar seguro</li>
+            </ol>
+            
+            <h3>¿Qué se exporta?</h3>
+            <ul>
+                <li>✅ Todas tus transacciones (ingresos y egresos)</li>
+                <li>✅ Pagos recurrentes programados</li>
+                <li>✅ Meta de ahorro configurada</li>
+                <li>✅ Resumen estadístico completo</li>
+            </ul>
+        </div>
+
+        <div class="step import-step">
+            <h2><span class="emoji">📥</span>IMPORTACIÓN - Restaurar Datos</h2>
+            <h3>Paso a Paso:</h3>
+            <ol>
+                <li><strong>Abre la aplicación</strong> en la nueva computadora</li>
+                <li><strong>Haz clic en el botón "📤 Importar"</strong></li>
+                <li><strong>Selecciona tu archivo</strong> <code>finanzas-backup-YYYY-MM-DD.json</code></li>
+                <li><strong>Confirma la importación</strong> (lee la advertencia)</li>
+                <li><strong>¡Listo!</strong> Todos tus datos aparecerán instantáneamente</li>
+            </ol>
+        </div>
+
+        <div class="step warning">
+            <h2><span class="emoji">⚠️</span>IMPORTANTE: Advertencias</h2>
+            <ul>
+                <li><strong>La importación REEMPLAZA todos los datos actuales</strong></li>
+                <li><strong>No se pueden combinar datos</strong> - solo reemplazar completamente</li>
+                <li><strong>Exporta primero</strong> si tienes datos importantes en la nueva computadora</li>
+                <li><strong>Verifica el archivo</strong> antes de importar</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h2><span class="emoji">🖥️</span>Escenarios Comunes de Uso</h2>
+            
+            <div class="scenario">
+                <div><strong>🏠 Casa</strong><br>Computadora personal</div>
+                <div class="arrow">→ 📤 →</div>
+                <div><strong>💼 Trabajo</strong><br>Computadora oficina</div>
+            </div>
+
+            <div class="scenario">
+                <div><strong>💻 Laptop Vieja</strong><br>Datos antiguos</div>
+                <div class="arrow">→ 📱 →</div>
+                <div><strong>💻 Laptop Nueva</strong><br>Datos transferidos</div>
+            </div>
+
+            <div class="scenario">
+                <div><strong>👤 Tu PC</strong><br>Datos personales</div>
+                <div class="arrow">→ 📧 →</div>
+                <div><strong>👨‍💼 Contador</strong><br>Revisión profesional</div>
+            </div>
+        </div>
+
+        <div class="step">
+            <h2><span class="emoji">💾</span>Métodos de Transferencia</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                    <h4>📱 USB/Pendrive</h4>
+                    <p>Copia física del archivo</p>
+                </div>
+                <div style="background: #f3e5f5; padding: 15px; border-radius: 8px;">
+                    <h4>📧 Email</h4>
+                    <p>Enviarte el archivo por correo</p>
+                </div>
+                <div style="background: #e8f5e8; padding: 15px; border-radius: 8px;">
+                    <h4>☁️ Cloud</h4>
+                    <p>Google Drive, OneDrive, Dropbox</p>
+                </div>
+                <div style="background: #fff3e0; padding: 15px; border-radius: 8px;">
+                    <h4>🌐 Red Local</h4>
+                    <p>Compartir en red doméstica</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="step success">
+            <h2><span class="emoji">✅</span>Verificación Post-Importación</h2>
+            <p><strong>Después de importar, verifica que todo esté correcto:</strong></p>
+            <ul>
+                <li>✅ Total de ingresos coincide</li>
+                <li>✅ Total de egresos coincide</li>
+                <li>✅ Número de transacciones correcto</li>
+                <li>✅ Pagos recurrentes programados</li>
+                <li>✅ Meta de ahorro configurada</li>
+                <li>✅ Gráficos se muestran correctamente</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h2><span class="emoji">🔧</span>Ejemplo de Archivo Exportado</h2>
+            <div class="code">
+{
+  "transactions": [
+    {
+      "id": "1693234567890",
+      "type": "expense",
+      "description": "Supermercado Plaza Vea",
+      "amount": 150.50,
+      "category": "alimentacion",
+      "date": "2025-08-29",
+      "method": "tarjeta"
+    }
+  ],
+  "recurringPayments": [
+    {
+      "id": "1693234567891", 
+      "description": "Netflix Premium",
+      "amount": 15.99,
+      "frequency": "mensual",
+      "nextDue": "2025-09-29"
+    }
+  ],
+  "savingsGoal": 2000.00,
+  "exportDate": "2025-08-29T18:45:30.123Z",
+  "summary": {
+    "totalIncome": 5000.00,
+    "totalExpenses": 3200.50,
+    "totalTransactions": 45
+  }
+}
+            </div>
+        </div>
+
+        <div class="step">
+            <h2><span class="emoji">💡</span>Consejos Profesionales</h2>
+            <h3>📅 Frecuencia de Backup:</h3>
+            <ul>
+                <li><strong>Diario:</strong> Si usas la app intensivamente</li>
+                <li><strong>Semanal:</strong> Para uso regular</li>
+                <li><strong>Mensual:</strong> Para uso ocasional</li>
+                <li><strong>Antes de cambios importantes:</strong> Siempre</li>
+            </ul>
+
+            <h3>🛡️ Seguridad:</h3>
+            <ul>
+                <li>Mantén múltiples versiones de backup</li>
+                <li>Almacena en ubicaciones diferentes (USB + Cloud)</li>
+                <li>Documenta cuándo y por qué exportaste</li>
+                <li>Prueba la importación periodicamente</li>
+            </ul>
+        </div>
+
+        <div class="step success">
+            <h2><span class="emoji">🎉</span>¡Ventajas del Sistema!</h2>
+            <ul>
+                <li><strong>🚀 Transferencia instantánea</strong> de todos los datos</li>
+                <li><strong>🔒 Formato estándar JSON</strong> universalmente compatible</li>
+                <li><strong>📊 Incluye resumen</strong> para verificación rápida</li>
+                <li><strong>💾 Archivos pequeños</strong> fáciles de compartir</li>
+                <li><strong>🛡️ Respaldo completo</strong> de toda tu información financiera</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

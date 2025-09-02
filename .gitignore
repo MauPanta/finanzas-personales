@@ -1,0 +1,12 @@
+# Archivos de desarrollo y documentación interna
+*.md
+*.json
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos temporales
+*.tmp
+*.temp
