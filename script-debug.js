@@ -5,6 +5,7 @@ class FinanceManager {
     constructor() {
         console.log('🚀 Construyendo Finance Manager...');
         this.transactions = [];
+        this.currentFilter = 'all'; // Inicializar filtro
         
         try {
             const stored = localStorage.getItem('transactions');
@@ -61,6 +62,21 @@ class FinanceManager {
                 this.addExpense();
             });
         }
+
+        // Pestañas de filtros de tabla
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        console.log('📊 Botones de pestañas encontrados:', tabButtons.length);
+        
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const filterType = e.target.dataset.tab;
+                console.log('🔄 Cambiando filtro de tabla a:', filterType);
+                this.switchTableFilter(filterType, e.target);
+            });
+        });
+
+        // Configurar filtro inicial
+        this.currentFilter = 'all';
     }
 
     setCurrentDate() {
@@ -246,10 +262,13 @@ class FinanceManager {
                         <td>${this.formatDate(transaction.date)}</td>
                         <td>${transaction.description}</td>
                         <td>${transaction.category}</td>
-                        <td class="${transaction.type}" style="color: ${transaction.type === 'income' ? '#4CAF50' : '#f44336'}">
-                            ${transaction.type === 'income' ? '+' : '-'}${this.formatCurrency(transaction.amount)}
+                        <td class="${transaction.type}" style="color: ${transaction.type === 'income' ? '#4CAF50' : '#f44336'}; font-weight: bold;">
+                            ${transaction.type === 'income' ? 'Ingreso' : 'Egreso'}
                         </td>
                         <td>${transaction.method}</td>
+                        <td style="color: ${transaction.type === 'income' ? '#4CAF50' : '#f44336'}; font-weight: bold;">
+                            ${transaction.type === 'income' ? '+' : '-'}${this.formatCurrency(transaction.amount)}
+                        </td>
                         <td>
                             <button onclick="financeManager.deleteTransaction('${transaction.id}')" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
                                 Eliminar
@@ -263,6 +282,92 @@ class FinanceManager {
 
         } catch (error) {
             console.error('❌ Error actualizando tabla:', error);
+        }
+    }
+
+    switchTableFilter(filterType, buttonElement) {
+        console.log('🔄 Cambiando filtro de tabla a:', filterType);
+        
+        try {
+            // Actualizar botones activos
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            buttonElement.classList.add('active');
+
+            // Guardar filtro actual
+            this.currentFilter = filterType;
+
+            // Actualizar tabla con filtro
+            this.updateTransactionsTableWithFilter(filterType);
+
+        } catch (error) {
+            console.error('❌ Error cambiando filtro:', error);
+        }
+    }
+
+    updateTransactionsTableWithFilter(filterType = 'all') {
+        console.log('📋 Actualizando tabla con filtro:', filterType);
+        
+        try {
+            const tableBody = document.getElementById('transactions-tbody');
+            if (!tableBody) {
+                console.error('❌ No se encontró el elemento transactions-tbody');
+                return;
+            }
+
+            // Limpiar tabla
+            tableBody.innerHTML = '';
+
+            // Filtrar transacciones según el tipo
+            let filteredTransactions = this.transactions;
+            
+            switch (filterType) {
+                case 'income':
+                    filteredTransactions = this.transactions.filter(t => t.type === 'income');
+                    break;
+                case 'expenses':
+                    filteredTransactions = this.transactions.filter(t => t.type === 'expense');
+                    break;
+                case 'all':
+                default:
+                    filteredTransactions = this.transactions;
+                    break;
+            }
+
+            console.log(`🔍 Mostrando ${filteredTransactions.length} de ${this.transactions.length} transacciones`);
+
+            // Agregar transacciones filtradas
+            filteredTransactions
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .forEach((transaction, index) => {
+                    console.log(`➕ Agregando fila filtrada ${index + 1}:`, transaction.description);
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${this.formatDate(transaction.date)}</td>
+                        <td>${transaction.description}</td>
+                        <td>${transaction.category}</td>
+                        <td class="${transaction.type}" style="color: ${transaction.type === 'income' ? '#4CAF50' : '#f44336'}; font-weight: bold;">
+                            ${transaction.type === 'income' ? 'Ingreso' : 'Egreso'}
+                        </td>
+                        <td>${transaction.method}</td>
+                        <td style="color: ${transaction.type === 'income' ? '#4CAF50' : '#f44336'}; font-weight: bold;">
+                            ${transaction.type === 'income' ? '+' : '-'}${this.formatCurrency(transaction.amount)}
+                        </td>
+                        <td>
+                            <button onclick="financeManager.deleteTransaction('${transaction.id}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                🗑️ Eliminar
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+            console.log('✅ Tabla filtrada actualizada');
+
+        } catch (error) {
+            console.error('❌ Error actualizando tabla filtrada:', error);
         }
     }
 
