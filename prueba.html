@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba - Control Financiero</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .card { border: 1px solid #ddd; padding: 20px; margin: 10px 0; border-radius: 8px; }
+        .amount { font-size: 24px; font-weight: bold; }
+        .form-group { margin: 10px 0; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; }
+        button { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 10px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Prueba - Control Financiero</h1>
+    
+    <!-- Resumen -->
+    <div class="card">
+        <h3>Resumen</h3>
+        <p>Total Ingresos: <span class="amount" id="total-income">S/ 0.00</span></p>
+        <p>Total Egresos: <span class="amount" id="total-expenses">S/ 0.00</span></p>
+        <p>Balance: <span class="amount" id="balance">S/ 0.00</span></p>
+    </div>
+    
+    <!-- Formulario de Ingresos -->
+    <div class="card">
+        <h3>Agregar Ingreso</h3>
+        <form id="income-form">
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" id="income-description" placeholder="Descripción del ingreso" required>
+            </div>
+            <div class="form-group">
+                <label>Monto</label>
+                <input type="number" id="income-amount" step="0.01" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <select id="income-category" required>
+                    <option value="">Seleccionar</option>
+                    <option value="salario">Salario</option>
+                    <option value="freelance">Freelance</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="income-date" required>
+            </div>
+            <div class="form-group">
+                <label>Método</label>
+                <select id="income-method" required>
+                    <option value="">Seleccionar</option>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transferencia">Transferencia</option>
+                </select>
+            </div>
+            <button type="submit">Agregar Ingreso</button>
+        </form>
+    </div>
+    
+    <!-- Formulario de Egresos -->
+    <div class="card">
+        <h3>Agregar Egreso</h3>
+        <form id="expense-form">
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" id="expense-description" placeholder="Descripción del egreso" required>
+            </div>
+            <div class="form-group">
+                <label>Monto</label>
+                <input type="number" id="expense-amount" step="0.01" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <select id="expense-category" required>
+                    <option value="">Seleccionar</option>
+                    <option value="alimentacion">Alimentación</option>
+                    <option value="transporte">Transporte</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="expense-date" required>
+            </div>
+            <div class="form-group">
+                <label>Método</label>
+                <select id="expense-method" required>
+                    <option value="">Seleccionar</option>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transferencia">Transferencia</option>
+                </select>
+            </div>
+            <button type="submit">Agregar Egreso</button>
+        </form>
+    </div>
+    
+    <!-- Tabla de Transacciones -->
+    <div class="card">
+        <h3>Transacciones</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="transactions-tbody"></tbody>
+        </table>
+    </div>
+    
+    <!-- Consola de Debug -->
+    <div class="card" style="background-color: #f8f9fa;">
+        <h3>Debug Console</h3>
+        <p>Abre las herramientas de desarrollador (F12) para ver los logs de debug</p>
+    </div>
+    
+    <script src="script-simple.js"></script>
+</body>
+</html>

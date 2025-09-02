@@ -1,32 +1,42 @@
 // Gestor de Finanzas Simple
 class FinanceManager {
     constructor() {
+        console.log('🚀 Inicializando Finance Manager...');
         this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        console.log('📊 Transacciones cargadas:', this.transactions.length);
         this.init();
     }
 
     init() {
+        console.log('⚙️ Configurando aplicación...');
         this.setupEventListeners();
         this.setCurrentDate();
         this.updateSummary();
         this.updateTransactionsTable();
+        console.log('✅ Aplicación inicializada correctamente');
     }
 
     setupEventListeners() {
+        console.log('🔗 Configurando event listeners...');
+        
         // Formulario de ingresos
         const incomeForm = document.getElementById('income-form');
+        console.log('📝 Formulario de ingresos encontrado:', !!incomeForm);
         if (incomeForm) {
             incomeForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                console.log('➕ Agregando ingreso...');
                 this.addIncome();
             });
         }
 
         // Formulario de egresos
         const expenseForm = document.getElementById('expense-form');
+        console.log('📝 Formulario de egresos encontrado:', !!expenseForm);
         if (expenseForm) {
             expenseForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                console.log('➖ Agregando egreso...');
                 this.addExpense();
             });
         }
@@ -103,6 +113,8 @@ class FinanceManager {
     }
 
     updateSummary() {
+        console.log('📊 Actualizando resumen...');
+        
         const income = this.transactions
             .filter(t => t.type === 'income')
             .reduce((sum, t) => sum + t.amount, 0);
@@ -113,10 +125,18 @@ class FinanceManager {
 
         const balance = income - expenses;
 
+        console.log(`💰 Ingresos: ${income}, Egresos: ${expenses}, Balance: ${balance}`);
+
         // Actualizar elementos en el DOM
         const totalIncomeElement = document.getElementById('total-income');
         const totalExpensesElement = document.getElementById('total-expenses');
         const balanceElement = document.getElementById('balance');
+
+        console.log('🎯 Elementos encontrados:', {
+            income: !!totalIncomeElement,
+            expenses: !!totalExpensesElement,
+            balance: !!balanceElement
+        });
 
         if (totalIncomeElement) {
             totalIncomeElement.textContent = this.formatCurrency(income);
@@ -131,14 +151,23 @@ class FinanceManager {
     }
 
     updateTransactionsTable() {
+        console.log('📋 Actualizando tabla de transacciones...');
+        
         const tableBody = document.getElementById('transactions-tbody');
-        if (!tableBody) return;
+        console.log('📊 Tabla encontrada:', !!tableBody);
+        console.log('🔢 Transacciones a mostrar:', this.transactions.length);
+        
+        if (!tableBody) {
+            console.error('❌ No se encontró el elemento transactions-tbody');
+            return;
+        }
 
         tableBody.innerHTML = '';
 
         this.transactions
             .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .forEach(transaction => {
+            .forEach((transaction, index) => {
+                console.log(`➕ Agregando transacción ${index + 1}:`, transaction);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${this.formatDate(transaction.date)}</td>
