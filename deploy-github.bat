@@ -5,7 +5,7 @@ rem Inicializar repositorio Git
 git init
 
 rem Agregar archivos
-git add index.html script.js styles.css README-github.md .gitignore
+git add index.html script.js script-simple.js styles.css README-github.md .gitignore
 
 rem Renombrar README
 git mv README-github.md README.md
