@@ -139,6 +139,9 @@
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-plus"></i> Agregar Ingreso
                         </button>
+                        <button type="button" onclick="financeManager.cancelEdit()" class="btn btn-secondary" style="margin-left: 10px; display: none;" id="cancel-edit-income">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
                     </form>
                 </div>
 
@@ -193,6 +196,9 @@
                         </div>
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-minus"></i> Agregar Egreso
+                        </button>
+                        <button type="button" onclick="financeManager.cancelEdit()" class="btn btn-secondary" style="margin-left: 10px; display: none;" id="cancel-edit-expense">
+                            <i class="fas fa-times"></i> Cancelar
                         </button>
                     </form>
                 </div>

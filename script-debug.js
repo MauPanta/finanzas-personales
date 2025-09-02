@@ -6,6 +6,7 @@ class FinanceManager {
         console.log('🚀 Construyendo Finance Manager...');
         this.transactions = [];
         this.currentFilter = 'all'; // Inicializar filtro
+        this.editingTransactionId = null; // Para controlar modo edición
         
         try {
             const stored = localStorage.getItem('transactions');
@@ -114,6 +115,51 @@ class FinanceManager {
                 return;
             }
 
+            // Verificar si estamos editando una transacción existente
+            if (this.editingTransactionId) {
+                console.log('🔄 Actualizando transacción existente:', this.editingTransactionId);
+                
+                const existingTransaction = this.transactions.find(t => t.id === this.editingTransactionId);
+                if (existingTransaction) {
+                    // Actualizar la transacción existente
+                    existingTransaction.description = description;
+                    existingTransaction.amount = amount;
+                    existingTransaction.category = category;
+                    existingTransaction.date = date;
+                    existingTransaction.method = method;
+                    existingTransaction.timestamp = new Date();
+
+                    console.log('✅ Transacción actualizada:', existingTransaction);
+                    
+                    // Limpiar el modo edición
+                    this.editingTransactionId = null;
+                    
+                    // Restaurar botón original
+                    const submitButton = document.querySelector('#income-form button[type="submit"]');
+                    const cancelButton = document.getElementById('cancel-edit-income');
+                    
+                    if (submitButton) {
+                        submitButton.innerHTML = '<i class="fas fa-plus"></i> Agregar Ingreso';
+                        submitButton.style.background = '#28a745';
+                        submitButton.style.color = 'white';
+                    }
+                    
+                    if (cancelButton) {
+                        cancelButton.style.display = 'none';
+                    }
+
+                    this.saveToLocalStorage();
+                    this.updateSummary();
+                    this.updateTransactionsTable();
+                    this.clearForm('income-form');
+                    
+                    console.log('🎉 Ingreso actualizado exitosamente');
+                    alert('Ingreso actualizado exitosamente');
+                    return;
+                }
+            }
+
+            // Crear nueva transacción
             const transaction = {
                 id: Date.now().toString(),
                 type: 'income',
@@ -125,7 +171,7 @@ class FinanceManager {
                 timestamp: new Date()
             };
 
-            console.log('✅ Transacción creada:', transaction);
+            console.log('✅ Nueva transacción creada:', transaction);
 
             this.transactions.push(transaction);
             this.saveToLocalStorage();
@@ -160,6 +206,51 @@ class FinanceManager {
                 return;
             }
 
+            // Verificar si estamos editando una transacción existente
+            if (this.editingTransactionId) {
+                console.log('🔄 Actualizando transacción existente:', this.editingTransactionId);
+                
+                const existingTransaction = this.transactions.find(t => t.id === this.editingTransactionId);
+                if (existingTransaction) {
+                    // Actualizar la transacción existente
+                    existingTransaction.description = description;
+                    existingTransaction.amount = amount;
+                    existingTransaction.category = category;
+                    existingTransaction.date = date;
+                    existingTransaction.method = method;
+                    existingTransaction.timestamp = new Date();
+
+                    console.log('✅ Transacción actualizada:', existingTransaction);
+                    
+                    // Limpiar el modo edición
+                    this.editingTransactionId = null;
+                    
+                    // Restaurar botón original
+                    const submitButton = document.querySelector('#expense-form button[type="submit"]');
+                    const cancelButton = document.getElementById('cancel-edit-expense');
+                    
+                    if (submitButton) {
+                        submitButton.innerHTML = '<i class="fas fa-minus"></i> Agregar Egreso';
+                        submitButton.style.background = '#dc3545';
+                        submitButton.style.color = 'white';
+                    }
+                    
+                    if (cancelButton) {
+                        cancelButton.style.display = 'none';
+                    }
+
+                    this.saveToLocalStorage();
+                    this.updateSummary();
+                    this.updateTransactionsTable();
+                    this.clearForm('expense-form');
+                    
+                    console.log('🎉 Egreso actualizado exitosamente');
+                    alert('Egreso actualizado exitosamente');
+                    return;
+                }
+            }
+
+            // Crear nueva transacción
             const transaction = {
                 id: Date.now().toString(),
                 type: 'expense',
@@ -171,7 +262,7 @@ class FinanceManager {
                 timestamp: new Date()
             };
 
-            console.log('✅ Transacción creada:', transaction);
+            console.log('✅ Nueva transacción creada:', transaction);
 
             this.transactions.push(transaction);
             this.saveToLocalStorage();
@@ -270,8 +361,11 @@ class FinanceManager {
                             ${transaction.type === 'income' ? '+' : '-'}${this.formatCurrency(transaction.amount)}
                         </td>
                         <td>
+                            <button onclick="financeManager.editTransaction('${transaction.id}')" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-right: 5px;">
+                                ✏️ Editar
+                            </button>
                             <button onclick="financeManager.deleteTransaction('${transaction.id}')" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
-                                Eliminar
+                                🗑️ Eliminar
                             </button>
                         </td>
                     `;
@@ -356,7 +450,10 @@ class FinanceManager {
                             ${transaction.type === 'income' ? '+' : '-'}${this.formatCurrency(transaction.amount)}
                         </td>
                         <td>
-                            <button onclick="financeManager.deleteTransaction('${transaction.id}')" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                            <button onclick="financeManager.editTransaction('${transaction.id}')" style="background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px;">
+                                ✏️ Editar
+                            </button>
+                            <button onclick="financeManager.deleteTransaction('${transaction.id}')" style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">
                                 🗑️ Eliminar
                             </button>
                         </td>
@@ -381,6 +478,96 @@ class FinanceManager {
             this.updateTransactionsTable();
             console.log('✅ Transacción eliminada');
             alert('Transacción eliminada');
+        }
+    }
+
+    editTransaction(id) {
+        console.log('✏️ Editando transacción:', id);
+        
+        try {
+            // Buscar la transacción
+            const transaction = this.transactions.find(t => t.id === id);
+            if (!transaction) {
+                console.error('❌ Transacción no encontrada');
+                alert('Error: Transacción no encontrada');
+                return;
+            }
+
+            console.log('📝 Transacción encontrada:', transaction);
+
+            // Determinar qué formulario usar
+            const isIncome = transaction.type === 'income';
+            const formPrefix = isIncome ? 'income' : 'expense';
+
+            // Llenar el formulario con los datos actuales
+            document.getElementById(`${formPrefix}-description`).value = transaction.description;
+            document.getElementById(`${formPrefix}-amount`).value = transaction.amount;
+            document.getElementById(`${formPrefix}-category`).value = transaction.category;
+            document.getElementById(`${formPrefix}-date`).value = transaction.date;
+            document.getElementById(`${formPrefix}-method`).value = transaction.method;
+
+            // Guardar el ID de la transacción que se está editando
+            this.editingTransactionId = id;
+
+            // Cambiar el texto del botón para indicar que está editando
+            const submitButton = document.querySelector(`#${formPrefix}-form button[type="submit"]`);
+            const cancelButton = document.getElementById(`cancel-edit-${formPrefix}`);
+            
+            if (submitButton) {
+                submitButton.innerHTML = `<i class="fas fa-save"></i> Actualizar ${isIncome ? 'Ingreso' : 'Egreso'}`;
+                submitButton.style.background = '#ffc107';
+                submitButton.style.color = '#000';
+            }
+            
+            if (cancelButton) {
+                cancelButton.style.display = 'inline-block';
+            }
+
+            // Hacer scroll al formulario
+            document.getElementById(`${formPrefix}-form`).scrollIntoView({ behavior: 'smooth' });
+
+            console.log('✅ Formulario preparado para edición');
+            alert(`Editando ${isIncome ? 'ingreso' : 'egreso'}. Modifica los campos y guarda los cambios.`);
+
+        } catch (error) {
+            console.error('❌ Error editando transacción:', error);
+            alert('Error al editar la transacción: ' + error.message);
+        }
+    }
+
+    cancelEdit() {
+        console.log('❌ Cancelando edición...');
+        
+        if (this.editingTransactionId) {
+            // Determinar qué formulario estaba siendo editado
+            const transaction = this.transactions.find(t => t.id === this.editingTransactionId);
+            if (transaction) {
+                const isIncome = transaction.type === 'income';
+                const formId = isIncome ? 'income-form' : 'expense-form';
+                
+                // Restaurar botón original
+                const submitButton = document.querySelector(`#${formId} button[type="submit"]`);
+                const cancelButton = document.getElementById(`cancel-edit-${isIncome ? 'income' : 'expense'}`);
+                
+                if (submitButton) {
+                    submitButton.innerHTML = isIncome ? 
+                        '<i class="fas fa-plus"></i> Agregar Ingreso' : 
+                        '<i class="fas fa-minus"></i> Agregar Egreso';
+                    submitButton.style.background = isIncome ? '#28a745' : '#dc3545';
+                    submitButton.style.color = 'white';
+                }
+                
+                if (cancelButton) {
+                    cancelButton.style.display = 'none';
+                }
+                
+                // Limpiar formulario
+                this.clearForm(formId);
+            }
+            
+            // Limpiar modo edición
+            this.editingTransactionId = null;
+            console.log('✅ Edición cancelada');
         }
     }
 

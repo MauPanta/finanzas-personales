@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Filtros y Eliminar</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .amount { font-size: 20px; font-weight: bold; }
+        .form-group { margin: 10px 0; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 10px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .tab-btn { background: #6c757d; color: white; padding: 8px 16px; border: none; margin: 0 2px; cursor: pointer; }
+        .tab-btn.active { background: #007bff; }
+        .income { color: #28a745; }
+        .expense { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test - Filtros y Eliminar</h1>
+    
+    <!-- Resumen -->
+    <div class="card">
+        <h3>Resumen Financiero</h3>
+        <p>💰 Total Ingresos: <span class="amount income" id="total-income">S/ 0.00</span></p>
+        <p>💸 Total Egresos: <span class="amount expense" id="total-expenses">S/ 0.00</span></p>
+        <p>💼 Balance: <span class="amount" id="balance">S/ 0.00</span></p>
+    </div>
+    
+    <!-- Formularios -->
+    <div style="display: flex; gap: 20px;">
+        <!-- Ingreso -->
+        <div class="card" style="flex: 1;">
+            <h3>➕ Agregar Ingreso</h3>
+            <form id="income-form">
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <input type="text" id="income-description" placeholder="Ej: Salario" required>
+                </div>
+                <div class="form-group">
+                    <label>Monto</label>
+                    <input type="number" id="income-amount" step="0.01" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="income-category" required>
+                        <option value="">Seleccionar</option>
+                        <option value="salario">Salario</option>
+                        <option value="freelance">Freelance</option>
+                        <option value="negocio">Negocio</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" id="income-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Método</label>
+                    <select id="income-method" required>
+                        <option value="">Seleccionar</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="transferencia">Transferencia</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Agregar Ingreso</button>
+            </form>
+        </div>
+        
+        <!-- Egreso -->
+        <div class="card" style="flex: 1;">
+            <h3>➖ Agregar Egreso</h3>
+            <form id="expense-form">
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <input type="text" id="expense-description" placeholder="Ej: Supermercado" required>
+                </div>
+                <div class="form-group">
+                    <label>Monto</label>
+                    <input type="number" id="expense-amount" step="0.01" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="expense-category" required>
+                        <option value="">Seleccionar</option>
+                        <option value="alimentacion">Alimentación</option>
+                        <option value="transporte">Transporte</option>
+                        <option value="servicios">Servicios</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" id="expense-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Método</label>
+                    <select id="expense-method" required>
+                        <option value="">Seleccionar</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="transferencia">Transferencia</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-danger">Agregar Egreso</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Tabla con Filtros -->
+    <div class="card">
+        <h3>📊 Historial de Transacciones</h3>
+        
+        <!-- Pestañas de filtro -->
+        <div class="table-tabs" style="margin-bottom: 15px;">
+            <button class="tab-btn active" data-tab="all">📋 Todas</button>
+            <button class="tab-btn" data-tab="income">💰 Ingresos</button>
+            <button class="tab-btn" data-tab="expenses">💸 Egresos</button>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th>Tipo</th>
+                    <th>Método</th>
+                    <th>Monto</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="transactions-tbody"></tbody>
+        </table>
+    </div>
+    
+    <!-- Debug Info -->
+    <div class="card" style="background-color: #f8f9fa; border: 2px dashed #6c757d;">
+        <h3>🔧 Debug Console</h3>
+        <p><strong>Instrucciones de prueba:</strong></p>
+        <ol>
+            <li>Abre las herramientas de desarrollador (F12)</li>
+            <li>Agrega algunas transacciones de ingreso y egreso</li>
+            <li>Prueba los filtros: Todas, Ingresos, Egresos</li>
+            <li>Prueba eliminar transacciones</li>
+            <li>Verifica que los totales se actualicen correctamente</li>
+        </ol>
+    </div>
+    
+    <script src="script-debug.js"></script>
+    
+    <script>
+        // Pequeño script adicional para mostrar información
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                console.log('🎯 ESTADO ACTUAL:');
+                console.log('📊 Transacciones:', financeManager?.transactions?.length || 0);
+                console.log('🔄 Filtro actual:', financeManager?.currentFilter || 'none');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
