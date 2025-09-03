@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Edición</title>
+</head>
+<body>
+    <h1>Test de Edición</h1>
+    <button onclick="testEdit()">Test Editar</button>
+    <div id="result"></div>
+
+    <script>
+        function testEdit() {
+            console.log('Test editar funcionando');
+            alert('Función testEdit funciona correctamente');
+            
+            // Verificar si financeManager existe
+            if (window.financeManager) {
+                console.log('financeManager existe:', financeManager);
+                if (typeof financeManager.editTransaction === 'function') {
+                    console.log('editTransaction es una función');
+                } else {
+                    console.log('editTransaction NO es una función');
+                }
+            } else {
+                console.log('financeManager NO existe');
+            }
+        }
+    </script>
+</body>
+</html>

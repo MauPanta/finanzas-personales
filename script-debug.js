@@ -31,6 +31,7 @@ class FinanceManager {
             this.setCurrentDate();
             this.updateSummary();
             this.updateTransactionsTable();
+            this.updateMonthlyAnalysis(); // Agregar análisis mensual
             console.log('✅ Aplicación inicializada correctamente');
         } catch (error) {
             console.error('❌ Error en init():', error);
@@ -78,6 +79,15 @@ class FinanceManager {
 
         // Configurar filtro inicial
         this.currentFilter = 'all';
+
+        // Event listener para meta de ahorro
+        const savingsGoalInput = document.getElementById('savings-goal');
+        if (savingsGoalInput) {
+            savingsGoalInput.addEventListener('input', () => {
+                this.updateSavingsGoal();
+            });
+            console.log('💰 Event listener de meta de ahorro configurado');
+        }
     }
 
     setCurrentDate() {
@@ -151,6 +161,7 @@ class FinanceManager {
                     this.saveToLocalStorage();
                     this.updateSummary();
                     this.updateTransactionsTable();
+                    this.updateMonthlyAnalysis();
                     this.clearForm('income-form');
                     
                     console.log('🎉 Ingreso actualizado exitosamente');
@@ -177,6 +188,7 @@ class FinanceManager {
             this.saveToLocalStorage();
             this.updateSummary();
             this.updateTransactionsTable();
+            this.updateMonthlyAnalysis();
             this.clearForm('income-form');
             
             console.log('🎉 Ingreso agregado exitosamente');
@@ -242,6 +254,7 @@ class FinanceManager {
                     this.saveToLocalStorage();
                     this.updateSummary();
                     this.updateTransactionsTable();
+                    this.updateMonthlyAnalysis();
                     this.clearForm('expense-form');
                     
                     console.log('🎉 Egreso actualizado exitosamente');
@@ -268,6 +281,7 @@ class FinanceManager {
             this.saveToLocalStorage();
             this.updateSummary();
             this.updateTransactionsTable();
+            this.updateMonthlyAnalysis();
             this.clearForm('expense-form');
             
             console.log('🎉 Egreso agregado exitosamente');
@@ -476,6 +490,7 @@ class FinanceManager {
             this.saveToLocalStorage();
             this.updateSummary();
             this.updateTransactionsTable();
+            this.updateMonthlyAnalysis();
             console.log('✅ Transacción eliminada');
             alert('Transacción eliminada');
         }
@@ -617,6 +632,226 @@ class FinanceManager {
             console.error('❌ Error formateando fecha:', error);
             return dateString;
         }
+    }
+
+    updateMonthlyAnalysis() {
+        console.log('📊 Actualizando análisis mensual...');
+        
+        try {
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1; // getMonth() devuelve 0-11
+            
+            console.log(`📅 Analizando mes actual: ${currentMonth}/${currentYear}`);
+
+            // Filtrar transacciones del mes actual
+            const currentMonthTransactions = this.transactions.filter(t => {
+                const transactionDate = new Date(t.date);
+                return transactionDate.getFullYear() === currentYear && 
+                       transactionDate.getMonth() + 1 === currentMonth;
+            });
+
+            console.log(`🔍 Transacciones del mes actual: ${currentMonthTransactions.length}`);
+
+            // Calcular totales del mes
+            const monthIncome = currentMonthTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const monthExpenses = currentMonthTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const monthBalance = monthIncome - monthExpenses;
+
+            // Actualizar elementos del DOM
+            const monthIncomeElement = document.getElementById('month-income');
+            const monthExpensesElement = document.getElementById('month-expenses');
+            const monthBalanceElement = document.getElementById('month-balance');
+
+            if (monthIncomeElement) {
+                monthIncomeElement.textContent = this.formatCurrency(monthIncome);
+                console.log('✅ Ingresos del mes actualizados:', this.formatCurrency(monthIncome));
+            }
+
+            if (monthExpensesElement) {
+                monthExpensesElement.textContent = this.formatCurrency(monthExpenses);
+                console.log('✅ Egresos del mes actualizados:', this.formatCurrency(monthExpenses));
+            }
+
+            if (monthBalanceElement) {
+                monthBalanceElement.textContent = this.formatCurrency(monthBalance);
+                monthBalanceElement.style.color = monthBalance >= 0 ? '#28a745' : '#dc3545';
+                console.log('✅ Balance del mes actualizado:', this.formatCurrency(monthBalance));
+            }
+
+            // Calcular categoría más gastada
+            this.updateTopExpenseCategory(currentMonthTransactions);
+
+            // Calcular promedio diario
+            this.updateDailyAverage(monthExpenses, currentDate);
+
+            console.log('✅ Análisis mensual actualizado correctamente');
+
+        } catch (error) {
+            console.error('❌ Error actualizando análisis mensual:', error);
+        }
+    }
+
+    updateTopExpenseCategory(transactions) {
+        console.log('🏷️ Calculando categoría más gastada...');
+        
+        try {
+            const expenses = transactions.filter(t => t.type === 'expense');
+            
+            if (expenses.length === 0) {
+                const topCategoryElement = document.getElementById('top-expense-category');
+                if (topCategoryElement) {
+                    topCategoryElement.textContent = 'N/A';
+                }
+                console.log('📊 No hay gastos este mes');
+                return;
+            }
+
+            // Agrupar por categoría
+            const categoryTotals = {};
+            expenses.forEach(expense => {
+                if (!categoryTotals[expense.category]) {
+                    categoryTotals[expense.category] = 0;
+                }
+                categoryTotals[expense.category] += expense.amount;
+            });
+
+            // Encontrar la categoría con mayor gasto
+            let topCategory = '';
+            let maxAmount = 0;
+
+            Object.entries(categoryTotals).forEach(([category, amount]) => {
+                if (amount > maxAmount) {
+                    maxAmount = amount;
+                    topCategory = category;
+                }
+            });
+
+            // Actualizar DOM
+            const topCategoryElement = document.getElementById('top-expense-category');
+            if (topCategoryElement && topCategory) {
+                const displayText = `${this.getCategoryDisplayName(topCategory)} (${this.formatCurrency(maxAmount)})`;
+                topCategoryElement.textContent = displayText;
+                console.log('✅ Categoría más gastada:', displayText);
+            }
+
+        } catch (error) {
+            console.error('❌ Error calculando categoría más gastada:', error);
+        }
+    }
+
+    updateSavingsGoal() {
+        console.log('💰 Actualizando meta de ahorro...');
+        
+        try {
+            const savingsGoalInput = document.getElementById('savings-goal');
+            const savingsProgressElement = document.getElementById('savings-progress');
+            const savingsStatusElement = document.getElementById('savings-status');
+
+            if (!savingsGoalInput || !savingsProgressElement || !savingsStatusElement) {
+                console.log('⚠️ Elementos de meta de ahorro no encontrados');
+                return;
+            }
+
+            const monthlyGoal = parseFloat(savingsGoalInput.value) || 0;
+            
+            // Calcular balance del mes actual
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1;
+            
+            const currentMonthTransactions = this.transactions.filter(t => {
+                const transactionDate = new Date(t.date);
+                return transactionDate.getFullYear() === currentYear && 
+                       transactionDate.getMonth() + 1 === currentMonth;
+            });
+
+            const monthIncome = currentMonthTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const monthExpenses = currentMonthTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const monthlyBalance = monthIncome - monthExpenses;
+            
+            if (monthlyGoal > 0) {
+                const progressPercentage = Math.min((monthlyBalance / monthlyGoal) * 100, 100);
+                const progressColor = progressPercentage >= 100 ? '#28a745' : 
+                                    progressPercentage >= 50 ? '#ffc107' : '#dc3545';
+
+                savingsProgressElement.style.width = `${Math.max(progressPercentage, 0)}%`;
+                savingsProgressElement.style.backgroundColor = progressColor;
+                
+                savingsStatusElement.textContent = `${Math.round(progressPercentage)}% de la meta (${this.formatCurrency(monthlyBalance)} / ${this.formatCurrency(monthlyGoal)})`;
+                savingsStatusElement.style.color = progressColor;
+
+                console.log(`💰 Meta de ahorro: ${Math.round(progressPercentage)}% completado`);
+            } else {
+                savingsProgressElement.style.width = '0%';
+                savingsStatusElement.textContent = 'Define una meta mensual';
+                savingsStatusElement.style.color = '#6c757d';
+                console.log('💰 No hay meta definida');
+            }
+
+            // Guardar meta en localStorage
+            localStorage.setItem('savingsGoal', monthlyGoal.toString());
+
+        } catch (error) {
+            console.error('❌ Error actualizando meta de ahorro:', error);
+        }
+    }
+
+    updateDailyAverage(monthExpenses, currentDate) {
+        console.log('📈 Calculando promedio diario...');
+        
+        try {
+            const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+            const currentDay = currentDate.getDate();
+            
+            // Usar los días transcurridos del mes, no el total de días
+            const dailyAverage = monthExpenses / currentDay;
+
+            const dailyAverageElement = document.getElementById('daily-average');
+            if (dailyAverageElement) {
+                dailyAverageElement.textContent = this.formatCurrency(dailyAverage);
+                console.log(`✅ Promedio diario: ${this.formatCurrency(dailyAverage)} (${monthExpenses} / ${currentDay} días)`);
+            }
+
+        } catch (error) {
+            console.error('❌ Error calculando promedio diario:', error);
+        }
+    }
+
+    getCategoryDisplayName(category) {
+        const categoryNames = {
+            'alimentacion': '🍽️ Alimentación',
+            'restaurante': '🍴 Restaurante',
+            'transporte': '🚗 Transporte',
+            'vivienda': '🏠 Vivienda',
+            'alquiler': '🏘️ Alquiler',
+            'salud': '🏥 Salud',
+            'quimica': '💊 Químico',
+            'tecnica': '🔧 Técnico',
+            'prestamo': '💳 Préstamo',
+            'entretenimiento': '🎬 Entretenimiento',
+            'educacion': '📚 Educación',
+            'ropa': '👕 Ropa',
+            'servicios': '⚡ Servicios',
+            'luz': '💡 Luz',
+            'agua': '💧 Agua',
+            'internet': '📶 Internet',
+            'otro': '📦 Otro'
+        };
+
+        return categoryNames[category] || category;
     }
 }
 

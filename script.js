@@ -125,8 +125,18 @@ class FinanceManager {
     }
 
     setupChartTabs() {
-        // Configurar pestañas de gráficos inicialmente
-        this.switchChart('expenses');
+        // Configurar pestañas de gráficos inicialmente - SIN cargar charts aún
+        document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-chart="expenses"]`).classList.add('active');
+        
+        document.querySelectorAll('.chart-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`chart-expenses`).classList.add('active');
+        
+        // NO llamar a updateSpecificChart aquí para evitar problemas de inicialización
     }
 
     switchChart(chartType) {
@@ -602,16 +612,26 @@ class FinanceManager {
     }
 
     updateExpensesChart() {
-        const ctx = document.getElementById('expenseChart');
-        if (!ctx) return; // Verificar que el elemento existe
+        const canvasElement = document.getElementById('expenseChart');
+        if (!canvasElement) {
+            console.log('Canvas expenseChart no encontrado');
+            return;
+        }
         
-        const context = ctx.getContext('2d');
-        
+        // Destruir cualquier chart existente de manera más agresiva
         if (this.charts.expenses) {
-            this.charts.expenses.destroy();
+            try {
+                this.charts.expenses.destroy();
+            } catch (e) {
+                console.log('Error al destruir chart expenses:', e);
+            }
             this.charts.expenses = null;
         }
-
+        
+        // Limpiar el canvas manualmente
+        const context = canvasElement.getContext('2d');
+        context.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        
         const expensesByCategory = {};
         this.transactions
             .filter(t => t.type === 'expense')
@@ -623,7 +643,8 @@ class FinanceManager {
         const data = Object.values(expensesByCategory);
         const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56'];
 
-        this.charts.expenses = new Chart(context, {
+        try {
+            this.charts.expenses = new Chart(context, {
             type: 'doughnut',
             data: {
                 labels: labels,
@@ -1702,7 +1723,7 @@ class FinanceManager {
 // Inicializar la aplicación cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.financeManager = new FinanceManager();
-    financeManager.setupCategorySuggestion(); // Configurar autosugerencia al iniciar
+    // Removido setupCategorySuggestion para evitar errores
 });
 
 // Funciones para autocompletado y sugerencias
