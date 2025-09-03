@@ -7,11 +7,19 @@ class FinanceManager {
     }
 
     init() {
-        this.setupEventListeners();
-        this.setCurrentDate();
-        this.updateSummary();
-        this.updateTransactionsTable();
-        this.updateMonthlyAnalysis();
+        try {
+            this.setupEventListeners();
+            this.setCurrentDate();
+            this.updateSummary();
+            this.updateTransactionsTable();
+            
+            // Solo llamar updateMonthlyAnalysis si hay elementos del análisis mensual
+            if (document.getElementById('monthly-income') || document.getElementById('monthly-expenses')) {
+                this.updateMonthlyAnalysis();
+            }
+        } catch (error) {
+            console.error('Error en init():', error);
+        }
     }
 
     setupEventListeners() {
@@ -228,15 +236,21 @@ class FinanceManager {
 
         const balance = totalIncome - totalExpenses;
 
-        document.getElementById('total-income').textContent = this.formatCurrency(totalIncome);
-        document.getElementById('total-expenses').textContent = this.formatCurrency(totalExpenses);
-        document.getElementById('balance').textContent = this.formatCurrency(balance);
+        // Actualizar solo si los elementos existen
+        const incomeEl = document.getElementById('total-income');
+        const expensesEl = document.getElementById('total-expenses');
+        const balanceEl = document.getElementById('balance');
 
-        const balanceElement = document.getElementById('balance');
-        if (balance >= 0) {
-            balanceElement.style.color = '#28a745';
-        } else {
-            balanceElement.style.color = '#dc3545';
+        if (incomeEl) incomeEl.textContent = this.formatCurrency(totalIncome);
+        if (expensesEl) expensesEl.textContent = this.formatCurrency(totalExpenses);
+        
+        if (balanceEl) {
+            balanceEl.textContent = this.formatCurrency(balance);
+            if (balance >= 0) {
+                balanceEl.style.color = '#28a745';
+            } else {
+                balanceEl.style.color = '#dc3545';
+            }
         }
     }
 
@@ -276,7 +290,8 @@ class FinanceManager {
     switchTab(tab) {
         // Actualizar botones
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        const activeBtn = document.querySelector(`[data-tab="${tab}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
 
         // Filtrar transacciones
         const rows = document.querySelectorAll('#transactions-tbody tr');
@@ -324,20 +339,27 @@ class FinanceManager {
                 expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
             });
 
-        const topCategory = Object.keys(expensesByCategory).reduce((a, b) => 
-            expensesByCategory[a] > expensesByCategory[b] ? a : b
-        , 'N/A');
+        const topCategory = Object.keys(expensesByCategory).length > 0 
+            ? Object.keys(expensesByCategory).reduce((a, b) => 
+                expensesByCategory[a] > expensesByCategory[b] ? a : b
+            ) : 'N/A';
 
         // Promedio diario
         const daysInMonth = new Date().getDate();
         const dailyAverage = monthlyExpenses / daysInMonth;
 
-        // Actualizar elementos
-        document.getElementById('monthly-income').textContent = this.formatCurrency(monthlyIncome);
-        document.getElementById('monthly-expenses').textContent = this.formatCurrency(monthlyExpenses);
-        document.getElementById('monthly-balance').textContent = this.formatCurrency(monthlyBalance);
-        document.getElementById('top-category').textContent = topCategory !== 'N/A' ? this.formatCategory(topCategory) : 'N/A';
-        document.getElementById('daily-average').textContent = this.formatCurrency(dailyAverage);
+        // Actualizar elementos SOLO si existen
+        const monthlyIncomeEl = document.getElementById('monthly-income');
+        const monthlyExpensesEl = document.getElementById('monthly-expenses');
+        const monthlyBalanceEl = document.getElementById('monthly-balance');
+        const topCategoryEl = document.getElementById('top-category');
+        const dailyAverageEl = document.getElementById('daily-average');
+
+        if (monthlyIncomeEl) monthlyIncomeEl.textContent = this.formatCurrency(monthlyIncome);
+        if (monthlyExpensesEl) monthlyExpensesEl.textContent = this.formatCurrency(monthlyExpenses);
+        if (monthlyBalanceEl) monthlyBalanceEl.textContent = this.formatCurrency(monthlyBalance);
+        if (topCategoryEl) topCategoryEl.textContent = topCategory !== 'N/A' ? this.formatCategory(topCategory) : 'N/A';
+        if (dailyAverageEl) dailyAverageEl.textContent = this.formatCurrency(dailyAverage);
 
         this.updateSavingsGoal(monthlyBalance);
     }
