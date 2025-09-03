@@ -14,9 +14,12 @@ class FinanceManager {
             this.updateTransactionsTable();
             
             // Solo llamar updateMonthlyAnalysis si hay elementos del análisis mensual
-            if (document.getElementById('monthly-income') || document.getElementById('monthly-expenses')) {
+            if (document.getElementById('month-income') || document.getElementById('month-expenses')) {
                 this.updateMonthlyAnalysis();
             }
+            
+            // Cargar meta de ahorro guardada
+            this.loadSavedSavingsGoal();
         } catch (error) {
             console.error('Error en init():', error);
         }
@@ -349,10 +352,10 @@ class FinanceManager {
         const dailyAverage = monthlyExpenses / daysInMonth;
 
         // Actualizar elementos SOLO si existen
-        const monthlyIncomeEl = document.getElementById('monthly-income');
-        const monthlyExpensesEl = document.getElementById('monthly-expenses');
-        const monthlyBalanceEl = document.getElementById('monthly-balance');
-        const topCategoryEl = document.getElementById('top-category');
+        const monthlyIncomeEl = document.getElementById('month-income');
+        const monthlyExpensesEl = document.getElementById('month-expenses');
+        const monthlyBalanceEl = document.getElementById('month-balance');
+        const topCategoryEl = document.getElementById('top-expense-category');
         const dailyAverageEl = document.getElementById('daily-average');
 
         if (monthlyIncomeEl) monthlyIncomeEl.textContent = this.formatCurrency(monthlyIncome);
@@ -367,14 +370,14 @@ class FinanceManager {
     updateSavingsGoal(monthBalance = 0) {
         const goalInput = document.getElementById('savings-goal');
         const progressBar = document.getElementById('savings-progress');
-        const progressText = document.getElementById('savings-progress-text');
+        const progressText = document.getElementById('savings-status');
 
         if (!goalInput || !progressBar || !progressText) return;
 
         const goal = parseFloat(goalInput.value) || 0;
         if (goal <= 0) {
             progressBar.style.width = '0%';
-            progressText.textContent = '0%';
+            progressText.textContent = '0% de la meta';
             return;
         }
 
@@ -382,7 +385,7 @@ class FinanceManager {
         const percentage = Math.min(100, (currentSavings / goal) * 100);
 
         progressBar.style.width = percentage + '%';
-        progressText.textContent = Math.round(percentage) + '%';
+        progressText.textContent = Math.round(percentage) + '% de la meta';
 
         // Colores según progreso
         if (percentage >= 100) {
@@ -394,6 +397,14 @@ class FinanceManager {
         }
 
         localStorage.setItem('savingsGoal', goal.toString());
+    }
+
+    loadSavedSavingsGoal() {
+        const savedGoal = localStorage.getItem('savingsGoal');
+        const goalInput = document.getElementById('savings-goal');
+        if (savedGoal && goalInput) {
+            goalInput.value = savedGoal;
+        }
     }
 
     exportData() {
@@ -457,8 +468,25 @@ class FinanceManager {
     }
 
     formatDate(dateStr) {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('es-PE');
+        try {
+            // Agregar un día para compensar el problema de zona horaria
+            const date = new Date(dateStr + 'T12:00:00');
+            
+            // Verificar que la fecha sea válida
+            if (isNaN(date.getTime())) {
+                return dateStr; // Devolver el string original si no se puede parsear
+            }
+            
+            // Formatear en español peruano
+            return date.toLocaleDateString('es-PE', {
+                day: '2-digit',
+                month: '2-digit', 
+                year: 'numeric'
+            });
+        } catch (error) {
+            console.error('Error formateando fecha:', error);
+            return dateStr;
+        }
     }
 
     formatCategory(category) {
