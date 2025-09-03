@@ -29,7 +29,7 @@ class FinanceManager {
             this.updateTransactionsTable();
             this.displayRecurringPayments();
             this.checkPaymentAlerts();
-            this.setupCategorySuggestion(); // Activar autosugerencia
+            // this.setupCategorySuggestion(); // Temporalmente comentado para evitar errores
             
             // Cargar gráficos de forma diferida
             setTimeout(() => {
@@ -602,10 +602,14 @@ class FinanceManager {
     }
 
     updateExpensesChart() {
-        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const ctx = document.getElementById('expenseChart');
+        if (!ctx) return; // Verificar que el elemento existe
+        
+        const context = ctx.getContext('2d');
         
         if (this.charts.expenses) {
             this.charts.expenses.destroy();
+            this.charts.expenses = null;
         }
 
         const expensesByCategory = {};
@@ -619,7 +623,7 @@ class FinanceManager {
         const data = Object.values(expensesByCategory);
         const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56'];
 
-        this.charts.expenses = new Chart(ctx, {
+        this.charts.expenses = new Chart(context, {
             type: 'doughnut',
             data: {
                 labels: labels,
@@ -1741,34 +1745,49 @@ let financeManager;
 
 // Función global para editar transacciones
 function editTransaction(id) {
-    if (financeManager && typeof financeManager.editTransaction === 'function') {
-        financeManager.editTransaction(id);
-    } else {
-        console.error('financeManager no está disponible');
-        alert('Error: La aplicación no está completamente cargada');
-    }
+    // Pequeño delay para asegurar que financeManager está listo
+    setTimeout(() => {
+        if (financeManager && typeof financeManager.editTransaction === 'function') {
+            financeManager.editTransaction(id);
+        } else {
+            console.error('financeManager no está disponible');
+            alert('Error: La aplicación no está completamente cargada. Recarga la página.');
+        }
+    }, 50);
 }
 
 // Función global para eliminar transacciones
 function deleteTransaction(id) {
-    if (financeManager && typeof financeManager.deleteTransaction === 'function') {
-        financeManager.deleteTransaction(id);
-    } else {
-        console.error('financeManager no está disponible');
-        alert('Error: La aplicación no está completamente cargada');
-    }
+    // Pequeño delay para asegurar que financeManager está listo
+    setTimeout(() => {
+        if (financeManager && typeof financeManager.deleteTransaction === 'function') {
+            financeManager.deleteTransaction(id);
+        } else {
+            console.error('financeManager no está disponible');
+            alert('Error: La aplicación no está completamente cargada. Recarga la página.');
+        }
+    }, 50);
 }
 
 // Agregar botón de datos de ejemplo al header
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializar el gestor de finanzas
-    financeManager = new FinanceManager();
+    try {
+        financeManager = new FinanceManager();
+        console.log('✅ FinanceManager inicializado correctamente');
+    } catch (error) {
+        console.error('❌ Error al inicializar FinanceManager:', error);
+        alert('Error al cargar la aplicación. Por favor recarga la página.');
+        return;
+    }
     
     const header = document.querySelector('.header');
-    const sampleButton = document.createElement('button');
-    sampleButton.innerHTML = '<i class="fas fa-database"></i> Cargar Datos de Ejemplo';
-    sampleButton.className = 'btn btn-secondary';
-    sampleButton.style.marginTop = '15px';
-    sampleButton.onclick = loadSampleData;
-    header.appendChild(sampleButton);
+    if (header) {
+        const sampleButton = document.createElement('button');
+        sampleButton.innerHTML = '<i class="fas fa-database"></i> Cargar Datos de Ejemplo';
+        sampleButton.className = 'btn btn-secondary';
+        sampleButton.style.marginTop = '15px';
+        sampleButton.onclick = loadSampleData;
+        header.appendChild(sampleButton);
+    }
 });
