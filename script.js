@@ -426,10 +426,10 @@ class FinanceManager {
                     ${transaction.type === 'income' ? '+' : '-'}${this.formatCurrency(transaction.amount)}
                 </td>
                 <td>
-                    <button class="action-btn btn-edit" onclick="financeManager.editTransaction('${transaction.id}')">
+                    <button class="action-btn btn-edit" onclick="editTransaction('${transaction.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn btn-delete" onclick="financeManager.deleteTransaction('${transaction.id}')">
+                    <button class="action-btn btn-delete" onclick="deleteTransaction('${transaction.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -503,10 +503,10 @@ class FinanceManager {
                     ${transaction.type === 'income' ? '+' : '-'}${this.formatCurrency(transaction.amount)}
                 </td>
                 <td>
-                    <button class="action-btn btn-edit" onclick="financeManager.editTransaction('${transaction.id}')">
+                    <button class="action-btn btn-edit" onclick="editTransaction('${transaction.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn btn-delete" onclick="financeManager.deleteTransaction('${transaction.id}')">
+                    <button class="action-btn btn-delete" onclick="deleteTransaction('${transaction.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -1709,6 +1709,26 @@ function loadSampleData() {
 
 // Inicializar la aplicación
 let financeManager;
+
+// Función global para editar transacciones
+function editTransaction(id) {
+    if (financeManager && typeof financeManager.editTransaction === 'function') {
+        financeManager.editTransaction(id);
+    } else {
+        console.error('financeManager no está disponible');
+        alert('Error: La aplicación no está completamente cargada');
+    }
+}
+
+// Función global para eliminar transacciones
+function deleteTransaction(id) {
+    if (financeManager && typeof financeManager.deleteTransaction === 'function') {
+        financeManager.deleteTransaction(id);
+    } else {
+        console.error('financeManager no está disponible');
+        alert('Error: La aplicación no está completamente cargada');
+    }
+}
 
 // Agregar botón de datos de ejemplo al header
 document.addEventListener('DOMContentLoaded', () => {
