@@ -4,6 +4,7 @@ class FinanceManager {
         this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
         this.recurringPayments = JSON.parse(localStorage.getItem('recurringPayments')) || [];
         this.savingsGoal = parseFloat(localStorage.getItem('savingsGoal')) || 0;
+        this.editingTransactionId = null; // Para controlar modo edición
         this.charts = {
             expenses: null,
             expenseDescriptions: null,
@@ -157,27 +158,43 @@ class FinanceManager {
             return;
         }
 
-        const transaction = {
-            id: Date.now().toString(),
-            type: 'income',
-            description,
-            amount,
-            category,
-            date,
-            method,
-            timestamp: new Date()
-        };
+        if (this.editingTransactionId) {
+            // Modo edición - actualizar transacción existente
+            const index = this.transactions.findIndex(t => t.id === this.editingTransactionId);
+            if (index !== -1) {
+                this.transactions[index] = {
+                    ...this.transactions[index],
+                    description,
+                    amount,
+                    category,
+                    date,
+                    method,
+                    timestamp: new Date()
+                };
+                alert('✅ Operación actualizada exitosamente');
+                this.cancelEdit();
+            }
+        } else {
+            // Modo agregar - nueva transacción
+            const transaction = {
+                id: Date.now().toString(),
+                type: 'income',
+                description,
+                amount,
+                category,
+                date,
+                method,
+                timestamp: new Date()
+            };
 
-        this.transactions.push(transaction);
+            this.transactions.push(transaction);
+            this.clearForm('income-form');
+            alert('✅ Operación grabada - Ingreso agregado exitosamente');
+        }
+
         this.saveToLocalStorage();
-        
-        // Actualización optimizada
-        this.updateSummaryOptimized(transaction);
+        this.updateSummaryOptimized();
         this.updateTransactionsTable();
-        this.clearForm('income-form');
-        
-        // Mostrar mensaje de confirmación
-        alert('✅ Operación grabada - Ingreso agregado exitosamente');
         
         // Actualizar gráficos de forma diferida
         setTimeout(() => {
@@ -199,27 +216,43 @@ class FinanceManager {
             return;
         }
 
-        const transaction = {
-            id: Date.now().toString(),
-            type: 'expense',
-            description,
-            amount,
-            category,
-            date,
-            method,
-            timestamp: new Date()
-        };
+        if (this.editingTransactionId) {
+            // Modo edición - actualizar transacción existente
+            const index = this.transactions.findIndex(t => t.id === this.editingTransactionId);
+            if (index !== -1) {
+                this.transactions[index] = {
+                    ...this.transactions[index],
+                    description,
+                    amount,
+                    category,
+                    date,
+                    method,
+                    timestamp: new Date()
+                };
+                alert('✅ Operación actualizada exitosamente');
+                this.cancelEdit();
+            }
+        } else {
+            // Modo agregar - nueva transacción
+            const transaction = {
+                id: Date.now().toString(),
+                type: 'expense',
+                description,
+                amount,
+                category,
+                date,
+                method,
+                timestamp: new Date()
+            };
 
-        this.transactions.push(transaction);
+            this.transactions.push(transaction);
+            this.clearForm('expense-form');
+            alert('✅ Operación grabada - Egreso agregado exitosamente');
+        }
+
         this.saveToLocalStorage();
-        
-        // Actualización optimizada
-        this.updateSummaryOptimized(transaction);
+        this.updateSummaryOptimized();
         this.updateTransactionsTable();
-        this.clearForm('expense-form');
-        
-        // Mostrar mensaje de confirmación
-        alert('✅ Operación grabada - Egreso agregado exitosamente');
         
         // Actualizar gráficos de forma diferida
         setTimeout(() => {
@@ -1252,6 +1285,9 @@ class FinanceManager {
         const transaction = this.transactions.find(t => t.id === id);
         if (!transaction) return;
 
+        // Establecer modo edición
+        this.editingTransactionId = id;
+
         // Llenar el formulario correspondiente con los datos
         if (transaction.type === 'income') {
             document.getElementById('income-description').value = transaction.description;
@@ -1259,20 +1295,53 @@ class FinanceManager {
             document.getElementById('income-category').value = transaction.category;
             document.getElementById('income-date').value = transaction.date;
             document.getElementById('income-method').value = transaction.method || 'efectivo';
+            
+            // Cambiar texto del botón y mostrar botón cancelar
+            const submitBtn = document.querySelector('#income-form button[type="submit"]');
+            const cancelBtn = document.getElementById('cancel-edit-income');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Ingreso';
+            cancelBtn.style.display = 'inline-block';
+            
+            // Scroll al formulario
+            document.getElementById('income-form').scrollIntoView({ behavior: 'smooth' });
         } else {
             document.getElementById('expense-description').value = transaction.description;
             document.getElementById('expense-amount').value = transaction.amount;
             document.getElementById('expense-category').value = transaction.category;
             document.getElementById('expense-date').value = transaction.date;
             document.getElementById('expense-method').value = transaction.method || 'efectivo';
+            
+            // Cambiar texto del botón y mostrar botón cancelar
+            const submitBtn = document.querySelector('#expense-form button[type="submit"]');
+            const cancelBtn = document.getElementById('cancel-edit-expense');
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Egreso';
+            cancelBtn.style.display = 'inline-block';
+            
+            // Scroll al formulario
+            document.getElementById('expense-form').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Eliminar la transacción original
-        this.deleteTransaction(id);
+        alert('📝 Modo edición activado. Modifica los campos y guarda los cambios.');
+    }
+
+    cancelEdit() {
+        this.editingTransactionId = null;
         
-        // Scroll al formulario
-        const formId = transaction.type === 'income' ? 'income-form' : 'expense-form';
-        document.getElementById(formId).scrollIntoView({ behavior: 'smooth' });
+        // Restaurar formulario de ingresos
+        const incomeSubmitBtn = document.querySelector('#income-form button[type="submit"]');
+        const incomeCancelBtn = document.getElementById('cancel-edit-income');
+        incomeSubmitBtn.innerHTML = '<i class="fas fa-plus"></i> Agregar Ingreso';
+        incomeCancelBtn.style.display = 'none';
+        this.clearForm('income-form');
+        
+        // Restaurar formulario de egresos
+        const expenseSubmitBtn = document.querySelector('#expense-form button[type="submit"]');
+        const expenseCancelBtn = document.getElementById('cancel-edit-expense');
+        expenseSubmitBtn.innerHTML = '<i class="fas fa-minus"></i> Agregar Egreso';
+        expenseCancelBtn.style.display = 'none';
+        this.clearForm('expense-form');
+        
+        alert('✅ Edición cancelada');
     }
 
     clearForm(formId) {
