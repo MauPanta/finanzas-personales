@@ -171,8 +171,22 @@ class FinanceManager {
                     method,
                     timestamp: new Date()
                 };
+                
+                // Actualizar todo ANTES de cancelar la edición
+                this.saveToLocalStorage();
+                this.updateSummary();
+                this.updateTransactionsTable();
+                
                 alert('✅ Operación actualizada exitosamente');
                 this.cancelEdit();
+                
+                // Actualizar gráficos de forma diferida
+                setTimeout(() => {
+                    this.updateSpecificChart('income');
+                    this.updateSpecificChart('comparison');
+                    this.updateMonthlyAnalysis();
+                }, 50);
+                return; // Salir aquí para evitar ejecutar el resto
             }
         } else {
             // Modo agregar - nueva transacción
@@ -229,8 +243,23 @@ class FinanceManager {
                     method,
                     timestamp: new Date()
                 };
+                
+                // Actualizar todo ANTES de cancelar la edición
+                this.saveToLocalStorage();
+                this.updateSummary();
+                this.updateTransactionsTable();
+                
                 alert('✅ Operación actualizada exitosamente');
                 this.cancelEdit();
+                
+                // Actualizar gráficos de forma diferida
+                setTimeout(() => {
+                    this.updateSpecificChart('expenses');
+                    this.updateSpecificChart('expense-descriptions');
+                    this.updateSpecificChart('comparison');
+                    this.updateMonthlyAnalysis();
+                }, 50);
+                return; // Salir aquí para evitar ejecutar el resto
             }
         } else {
             // Modo agregar - nueva transacción
