@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Pagos Recurrentes</title>
+</head>
+<body>
+    <h2>Prueba de Pagos Recurrentes</h2>
+    
+    <form id="recurring-payment-form">
+        <div>
+            <label for="recurring-description">Descripción:</label>
+            <input type="text" id="recurring-description" value="Netflix" required>
+        </div>
+        <div>
+            <label for="recurring-amount">Monto:</label>
+            <input type="number" id="recurring-amount" value="35.90" step="0.01" required>
+        </div>
+        <div>
+            <label for="recurring-frequency">Frecuencia:</label>
+            <select id="recurring-frequency" required>
+                <option value="mensual">Mensual</option>
+                <option value="semanal">Semanal</option>
+                <option value="quincenal">Quincenal</option>
+                <option value="anual">Anual</option>
+            </select>
+        </div>
+        <button type="submit">Agregar Pago Recurrente</button>
+    </form>
+
+    <div class="recurring-list">
+        <h3>Pagos Programados</h3>
+        <div class="payments-container"></div>
+    </div>
+
+    <script>
+        // Test simplificado
+        class TestFinanceManager {
+            constructor() {
+                this.recurringPayments = JSON.parse(localStorage.getItem('recurringPayments')) || [];
+                this.init();
+            }
+
+            init() {
+                document.getElementById('recurring-payment-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addRecurringPayment();
+                });
+                this.displayRecurringPayments();
+            }
+
+            addRecurringPayment() {
+                const description = document.getElementById('recurring-description').value;
+                const amount = parseFloat(document.getElementById('recurring-amount').value);
+                const frequency = document.getElementById('recurring-frequency').value;
+
+                console.log('Agregando pago:', { description, amount, frequency });
+
+                const payment = {
+                    id: Date.now().toString(),
+                    description,
+                    amount,
+                    frequency,
+                    nextDue: this.calculateNextDue(frequency)
+                };
+
+                this.recurringPayments.push(payment);
+                localStorage.setItem('recurringPayments', JSON.stringify(this.recurringPayments));
+                this.displayRecurringPayments();
+                alert('Pago agregado: ' + description);
+            }
+
+            calculateNextDue(frequency) {
+                const now = new Date();
+                switch(frequency) {
+                    case 'semanal':
+                        now.setDate(now.getDate() + 7);
+                        break;
+                    case 'quincenal':
+                        now.setDate(now.getDate() + 15);
+                        break;
+                    case 'mensual':
+                        now.setMonth(now.getMonth() + 1);
+                        break;
+                    case 'anual':
+                        now.setFullYear(now.getFullYear() + 1);
+                        break;
+                }
+                return now.toISOString().split('T')[0];
+            }
+
+            displayRecurringPayments() {
+                const container = document.querySelector('.payments-container');
+                container.innerHTML = '';
+                
+                if (this.recurringPayments.length === 0) {
+                    container.innerHTML = '<p>No hay pagos recurrentes</p>';
+                    return;
+                }
+
+                this.recurringPayments.forEach(payment => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <strong>${payment.description}</strong> - 
+                        S/ ${payment.amount} - 
+                        ${payment.frequency} - 
+                        Próximo: ${payment.nextDue}
+                        <button onclick="testManager.deletePayment('${payment.id}')">Eliminar</button>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            deletePayment(id) {
+                this.recurringPayments = this.recurringPayments.filter(p => p.id !== id);
+                localStorage.setItem('recurringPayments', JSON.stringify(this.recurringPayments));
+                this.displayRecurringPayments();
+            }
+        }
+
+        const testManager = new TestFinanceManager();
+    </script>
+</body>
+</html>

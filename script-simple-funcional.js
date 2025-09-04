@@ -30,12 +30,11 @@ class FinanceManager {
             // Cargar meta de ahorro guardada
             this.loadSavedSavingsGoal();
 
-            // Cargar y mostrar pagos recurrentes
-            this.displayRecurringPayments();
-
             // Cargar gráficos de forma diferida para evitar errores de inicialización
             setTimeout(() => {
                 this.updateChart('expenses');
+                // Cargar y mostrar pagos recurrentes después de que todo esté listo
+                this.displayRecurringPayments();
             }, 500);
             
         } catch (error) {
@@ -1070,9 +1069,12 @@ class FinanceManager {
     // ============ MÉTODOS DE PAGOS RECURRENTES ============
 
     addRecurringPayment() {
+        console.log('🔍 Ejecutando addRecurringPayment()');
         const description = document.getElementById('recurring-description').value;
         const amount = parseFloat(document.getElementById('recurring-amount').value);
         const frequency = document.getElementById('recurring-frequency').value;
+
+        console.log('📝 Valores del formulario:', { description, amount, frequency });
 
         if (!description || !amount || !frequency) {
             alert('Por favor completa todos los campos');
@@ -1155,13 +1157,21 @@ class FinanceManager {
     }
 
     displayRecurringPayments() {
+        console.log('🔍 Ejecutando displayRecurringPayments()');
         const container = document.querySelector('.payments-container');
-        if (!container) return;
+        console.log('📦 Contenedor encontrado:', container);
+        console.log('💰 Pagos recurrentes:', this.recurringPayments.length, this.recurringPayments);
+        
+        if (!container) {
+            console.error('❌ Contenedor .payments-container no encontrado');
+            return;
+        }
         
         container.innerHTML = '';
 
         if (this.recurringPayments.length === 0) {
             container.innerHTML = '<p style="text-align: center; color: #666;">No hay pagos recurrentes configurados</p>';
+            console.log('📝 Mensaje mostrado: No hay pagos recurrentes');
             return;
         }
 
