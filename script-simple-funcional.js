@@ -1,8 +1,10 @@
 // Versión simplificada y funcional del script
 class FinanceManager {
     constructor() {
+        console.log('🚀 Inicializando FinanceManager...');
         this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
         this.recurringPayments = JSON.parse(localStorage.getItem('recurringPayments')) || [];
+        console.log('💰 Pagos recurrentes cargados:', this.recurringPayments.length);
         this.editingTransactionId = null;
         this.charts = {
             expenses: null,
