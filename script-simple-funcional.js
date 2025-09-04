@@ -3,6 +3,14 @@ class FinanceManager {
     constructor() {
         this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
         this.editingTransactionId = null;
+        this.charts = {
+            expenses: null,
+            expenseDescriptions: null,
+            income: null,
+            comparison: null,
+            methods: null,
+            monthly: null
+        };
         this.init();
     }
 
@@ -20,6 +28,12 @@ class FinanceManager {
             
             // Cargar meta de ahorro guardada
             this.loadSavedSavingsGoal();
+
+            // Cargar gráficos de forma diferida para evitar errores de inicialización
+            setTimeout(() => {
+                this.updateChart('expenses');
+            }, 500);
+            
         } catch (error) {
             console.error('Error en init():', error);
         }
@@ -42,6 +56,13 @@ class FinanceManager {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.switchTab(e.target.dataset.tab);
+            });
+        });
+
+        // Pestañas de gráficos
+        document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.switchChart(e.target.dataset.chart);
             });
         });
 
@@ -88,6 +109,7 @@ class FinanceManager {
                 this.updateSummary();
                 this.updateTransactionsTable();
                 this.updateMonthlyAnalysis();
+                this.updateAllCharts();
                 alert('✅ Operación actualizada exitosamente');
                 this.cancelEdit();
                 return;
@@ -109,6 +131,7 @@ class FinanceManager {
         this.updateSummary();
         this.updateTransactionsTable();
         this.updateMonthlyAnalysis();
+        this.updateAllCharts();
     }
 
     addExpense() {
@@ -136,6 +159,7 @@ class FinanceManager {
                 this.updateSummary();
                 this.updateTransactionsTable();
                 this.updateMonthlyAnalysis();
+                this.updateAllCharts();
                 alert('✅ Operación actualizada exitosamente');
                 this.cancelEdit();
                 return;
@@ -157,6 +181,7 @@ class FinanceManager {
         this.updateSummary();
         this.updateTransactionsTable();
         this.updateMonthlyAnalysis();
+        this.updateAllCharts();
     }
 
     editTransaction(id) {
@@ -219,6 +244,7 @@ class FinanceManager {
             this.updateSummary();
             this.updateTransactionsTable();
             this.updateMonthlyAnalysis();
+            this.updateAllCharts();
             alert('✅ Transacción eliminada');
         }
     }
@@ -470,6 +496,7 @@ class FinanceManager {
                     this.updateSummary();
                     this.updateTransactionsTable();
                     this.updateMonthlyAnalysis();
+                    this.updateAllCharts();
                     alert(`Datos importados exitosamente: ${importedData.transactions.length} transacciones`);
                 } else {
                     alert('Archivo no válido. Debe contener un array de transacciones.');
@@ -543,6 +570,504 @@ class FinanceManager {
             'cheque': '📄 Cheque'
         };
         return methods[method] || method;
+    }
+
+    // ============ MÉTODOS DE GRÁFICOS ============
+    
+    switchChart(chartType) {
+        console.log('🔄 Cambiando a gráfico:', chartType);
+        
+        // Actualizar botones de pestañas
+        document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const activeBtn = document.querySelector(`[data-chart="${chartType}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        // Mostrar contenido del gráfico correspondiente
+        document.querySelectorAll('.chart-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        const chartContent = document.getElementById(`chart-${chartType}`);
+        if (chartContent) chartContent.classList.add('active');
+
+        // Actualizar el gráfico específico con delay
+        setTimeout(() => {
+            this.updateChart(chartType);
+        }, 100);
+    }
+
+    updateChart(chartType) {
+        try {
+            console.log('📊 Actualizando gráfico:', chartType);
+            
+            switch(chartType) {
+                case 'expenses':
+                    this.updateExpensesChart();
+                    break;
+                case 'expense-descriptions':
+                    this.updateExpenseDescriptionsChart();
+                    break;
+                case 'income':
+                    this.updateIncomeChart();
+                    break;
+                case 'comparison':
+                    this.updateComparisonChart();
+                    break;
+                case 'methods':
+                    this.updateMethodsChart();
+                    break;
+                case 'monthly':
+                    this.updateMonthlyChart();
+                    break;
+                default:
+                    console.log('Tipo de gráfico desconocido:', chartType);
+            }
+        } catch (error) {
+            console.error('Error al actualizar gráfico ' + chartType + ':', error);
+        }
+    }
+
+    updateExpensesChart() {
+        const canvas = document.getElementById('expenseChart');
+        if (!canvas) {
+            console.log('Canvas expenseChart no encontrado');
+            return;
+        }
+
+        // Destruir gráfico existente de forma segura
+        if (this.charts.expenses) {
+            try {
+                this.charts.expenses.destroy();
+            } catch (e) {
+                console.log('Error al destruir gráfico expenses:', e);
+            }
+            this.charts.expenses = null;
+        }
+
+        const expensesByCategory = {};
+        this.transactions
+            .filter(t => t.type === 'expense')
+            .forEach(t => {
+                expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+            });
+
+        const labels = Object.keys(expensesByCategory).map(cat => this.formatCategory(cat));
+        const data = Object.values(expensesByCategory);
+        const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+
+        if (labels.length === 0) {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            console.log('No hay datos de gastos para mostrar');
+            return;
+        }
+
+        try {
+            this.charts.expenses = new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const label = context.label || '';
+                                    const value = this.formatCurrency(context.parsed);
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('✅ Gráfico de gastos creado exitosamente');
+        } catch (error) {
+            console.error('Error al crear gráfico de gastos:', error);
+        }
+    }
+
+    updateIncomeChart() {
+        const canvas = document.getElementById('incomeChart');
+        if (!canvas) return;
+
+        if (this.charts.income) {
+            try {
+                this.charts.income.destroy();
+            } catch (e) {
+                console.log('Error al destruir gráfico income:', e);
+            }
+            this.charts.income = null;
+        }
+
+        const incomeByCategory = {};
+        this.transactions
+            .filter(t => t.type === 'income')
+            .forEach(t => {
+                incomeByCategory[t.category] = (incomeByCategory[t.category] || 0) + t.amount;
+            });
+
+        const labels = Object.keys(incomeByCategory).map(cat => this.formatCategory(cat));
+        const data = Object.values(incomeByCategory);
+        const colors = ['#28a745', '#17a2b8', '#ffc107', '#6f42c1', '#e83e8c'];
+
+        if (labels.length === 0) {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+
+        try {
+            this.charts.income = new Chart(canvas.getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const label = context.label || '';
+                                    const value = this.formatCurrency(context.parsed);
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error al crear gráfico de ingresos:', error);
+        }
+    }
+
+    updateComparisonChart() {
+        const canvas = document.getElementById('comparisonChart');
+        if (!canvas) return;
+
+        if (this.charts.comparison) {
+            try {
+                this.charts.comparison.destroy();
+            } catch (e) {
+                console.log('Error al destruir gráfico comparison:', e);
+            }
+            this.charts.comparison = null;
+        }
+
+        const totalIncome = this.transactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const totalExpenses = this.transactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        if (totalIncome === 0 && totalExpenses === 0) {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+
+        try {
+            this.charts.comparison = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Ingresos', 'Egresos'],
+                    datasets: [{
+                        data: [totalIncome, totalExpenses],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    return this.formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => this.formatCurrency(value)
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error al crear gráfico de comparación:', error);
+        }
+    }
+
+    // Implementar gráficos faltantes
+    updateExpenseDescriptionsChart() {
+        const canvas = document.getElementById('expenseDescriptionChart');
+        if (!canvas) return;
+
+        if (this.charts.expenseDescriptions) {
+            try {
+                this.charts.expenseDescriptions.destroy();
+            } catch (e) {
+                console.log('Error al destruir gráfico expenseDescriptions:', e);
+            }
+            this.charts.expenseDescriptions = null;
+        }
+
+        const expensesByDescription = {};
+        this.transactions
+            .filter(t => t.type === 'expense')
+            .forEach(t => {
+                expensesByDescription[t.description] = (expensesByDescription[t.description] || 0) + t.amount;
+            });
+
+        // Tomar solo los 10 más altos
+        const sortedExpenses = Object.entries(expensesByDescription)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 10);
+
+        const labels = sortedExpenses.map(([desc]) => desc.length > 20 ? desc.substring(0, 20) + '...' : desc);
+        const data = sortedExpenses.map(([,amount]) => amount);
+        const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF', '#4BC0C0', '#FF6384', '#36A2EB'];
+
+        if (labels.length === 0) {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+
+        try {
+            this.charts.expenseDescriptions = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monto',
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => this.formatCurrency(context.parsed.x)
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => this.formatCurrency(value)
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('✅ Gráfico de descripciones de gastos creado exitosamente');
+        } catch (error) {
+            console.error('Error al crear gráfico de descripciones:', error);
+        }
+    }
+
+    updateMethodsChart() {
+        const canvas = document.getElementById('methodsChart');
+        if (!canvas) return;
+
+        if (this.charts.methods) {
+            try {
+                this.charts.methods.destroy();
+            } catch (e) {
+                console.log('Error al destruir gráfico methods:', e);
+            }
+            this.charts.methods = null;
+        }
+
+        const transactionsByMethod = {};
+        this.transactions.forEach(t => {
+            transactionsByMethod[t.method] = (transactionsByMethod[t.method] || 0) + t.amount;
+        });
+
+        const labels = Object.keys(transactionsByMethod).map(method => this.formatMethod(method));
+        const data = Object.values(transactionsByMethod);
+        const colors = ['#28a745', '#dc3545', '#ffc107', '#17a2b8'];
+
+        if (labels.length === 0) {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+
+        try {
+            this.charts.methods = new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const label = context.label || '';
+                                    const value = this.formatCurrency(context.parsed);
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('✅ Gráfico de métodos de pago creado exitosamente');
+        } catch (error) {
+            console.error('Error al crear gráfico de métodos:', error);
+        }
+    }
+
+    updateMonthlyChart() {
+        const canvas = document.getElementById('monthlyChart');
+        if (!canvas) return;
+
+        if (this.charts.monthly) {
+            try {
+                this.charts.monthly.destroy();
+            } catch (e) {
+                console.log('Error al destruir gráfico monthly:', e);
+            }
+            this.charts.monthly = null;
+        }
+
+        // Agrupar gastos por mes de los últimos 6 meses
+        const months = {};
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = date.toISOString().substring(0, 7);
+            const monthName = date.toLocaleDateString('es-PE', { month: 'short', year: 'numeric' });
+            months[key] = { name: monthName, expenses: 0 };
+        }
+
+        this.transactions
+            .filter(t => t.type === 'expense')
+            .forEach(t => {
+                const monthKey = t.date.substring(0, 7);
+                if (months[monthKey]) {
+                    months[monthKey].expenses += t.amount;
+                }
+            });
+
+        const labels = Object.values(months).map(m => m.name);
+        const data = Object.values(months).map(m => m.expenses);
+
+        if (data.every(value => value === 0)) {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+
+        try {
+            this.charts.monthly = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Gastos Mensuales',
+                        data: data,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => this.formatCurrency(context.parsed.y)
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => this.formatCurrency(value)
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('✅ Gráfico mensual creado exitosamente');
+        } catch (error) {
+            console.error('Error al crear gráfico mensual:', error);
+        }
+    }
+
+    // Método para actualizar todos los gráficos
+    updateAllCharts() {
+        try {
+            // Solo actualizar el gráfico activo para evitar problemas de rendimiento
+            const activeTab = document.querySelector('.chart-tab-btn.active');
+            if (activeTab) {
+                const activeChart = activeTab.dataset.chart;
+                setTimeout(() => {
+                    this.updateChart(activeChart);
+                }, 100);
+            }
+        } catch (error) {
+            console.error('Error al actualizar gráficos:', error);
+        }
     }
 }
 
