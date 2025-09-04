@@ -318,11 +318,15 @@ class FinanceManager {
     }
 
     updateMonthlyAnalysis() {
+        console.log('🔍 Ejecutando updateMonthlyAnalysis()');
+        
         const currentMonth = new Date().toISOString().substring(0, 7);
+        console.log('📅 Mes actual:', currentMonth);
         
         const monthlyTransactions = this.transactions.filter(t => 
             t.date.substring(0, 7) === currentMonth
         );
+        console.log('📊 Transacciones del mes:', monthlyTransactions.length, monthlyTransactions);
 
         const monthlyIncome = monthlyTransactions
             .filter(t => t.type === 'income')
@@ -352,17 +356,39 @@ class FinanceManager {
         const dailyAverage = monthlyExpenses / daysInMonth;
 
         // Actualizar elementos SOLO si existen
-        const monthlyIncomeEl = document.getElementById('month-income');
-        const monthlyExpensesEl = document.getElementById('month-expenses');
-        const monthlyBalanceEl = document.getElementById('month-balance');
+        const monthIncomeEl = document.getElementById('month-income');
+        const monthExpensesEl = document.getElementById('month-expenses');
+        const monthBalanceEl = document.getElementById('month-balance');
         const topCategoryEl = document.getElementById('top-expense-category');
         const dailyAverageEl = document.getElementById('daily-average');
 
-        if (monthlyIncomeEl) monthlyIncomeEl.textContent = this.formatCurrency(monthlyIncome);
-        if (monthlyExpensesEl) monthlyExpensesEl.textContent = this.formatCurrency(monthlyExpenses);
-        if (monthlyBalanceEl) monthlyBalanceEl.textContent = this.formatCurrency(monthlyBalance);
-        if (topCategoryEl) topCategoryEl.textContent = topCategory !== 'N/A' ? this.formatCategory(topCategory) : 'N/A';
-        if (dailyAverageEl) dailyAverageEl.textContent = this.formatCurrency(dailyAverage);
+        console.log('🔍 Elementos encontrados:');
+        console.log('- month-income:', monthIncomeEl ? 'SÍ' : 'NO');
+        console.log('- month-expenses:', monthExpensesEl ? 'SÍ' : 'NO');
+        console.log('- month-balance:', monthBalanceEl ? 'SÍ' : 'NO');
+        console.log('- top-expense-category:', topCategoryEl ? 'SÍ' : 'NO');
+        console.log('- daily-average:', dailyAverageEl ? 'SÍ' : 'NO');
+
+        if (monthIncomeEl) {
+            monthIncomeEl.textContent = this.formatCurrency(monthlyIncome);
+            console.log('✅ Ingresos actualizados:', this.formatCurrency(monthlyIncome));
+        }
+        if (monthExpensesEl) {
+            monthExpensesEl.textContent = this.formatCurrency(monthlyExpenses);
+            console.log('✅ Gastos actualizados:', this.formatCurrency(monthlyExpenses));
+        }
+        if (monthBalanceEl) {
+            monthBalanceEl.textContent = this.formatCurrency(monthlyBalance);
+            console.log('✅ Balance actualizado:', this.formatCurrency(monthlyBalance));
+        }
+        if (topCategoryEl) {
+            topCategoryEl.textContent = topCategory !== 'N/A' ? this.formatCategory(topCategory) : 'N/A';
+            console.log('✅ Categoría actualizada:', topCategory);
+        }
+        if (dailyAverageEl) {
+            dailyAverageEl.textContent = this.formatCurrency(dailyAverage);
+            console.log('✅ Promedio actualizado:', this.formatCurrency(dailyAverage));
+        }
 
         this.updateSavingsGoal(monthlyBalance);
     }
