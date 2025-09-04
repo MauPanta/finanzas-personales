@@ -82,11 +82,35 @@ class FinanceManager {
         // Formulario de pagos recurrentes
         const recurringForm = document.getElementById('recurring-payment-form');
         if (recurringForm) {
-            recurringForm.addEventListener('submit', (e) => {
+            // Remover listener previo si existe
+            recurringForm.removeEventListener('submit', this.handleRecurringSubmit);
+            // Agregar nuevo listener
+            this.handleRecurringSubmit = (e) => {
+                e.preventDefault();
+                console.log('🎯 Submit de pagos recurrentes activado');
+                this.addRecurringPayment();
+            };
+            recurringForm.addEventListener('submit', this.handleRecurringSubmit);
+            console.log('✅ Event listener de pagos recurrentes configurado');
+        } else {
+            console.error('❌ Formulario recurring-payment-form no encontrado');
+        }
+
+        // Event listener alternativo para el botón de pagos recurrentes
+        // Buscar el botón dentro del formulario de pagos recurrentes
+        const recurringButton = document.querySelector('#recurring-payment-form button[type="submit"]');
+        if (recurringButton) {
+            recurringButton.addEventListener('click', (e) => {
+                console.log('🎯 Click directo en botón de pagos recurrentes');
                 e.preventDefault();
                 this.addRecurringPayment();
             });
+            console.log('✅ Event listener directo en botón configurado');
+        } else {
+            console.error('❌ Botón de submit de pagos recurrentes no encontrado');
         }
+
+        // ...existing code...
     }
 
     setCurrentDate() {
@@ -773,8 +797,7 @@ class FinanceManager {
                             }
                         }
                     }
-                }
-            });
+                });
         } catch (error) {
             console.error('Error al crear gráfico de ingresos:', error);
         }
@@ -978,7 +1001,6 @@ class FinanceManager {
                             }
                         }
                     }
-                }
             });
             console.log('✅ Gráfico de métodos de pago creado exitosamente');
         } catch (error) {
@@ -1274,6 +1296,17 @@ function markAsPaid(id) {
     if (window.financeManager && typeof window.financeManager.markAsPaid === 'function') {
         window.financeManager.markAsPaid(id);
     } else {
+        alert('Error: La aplicación no está completamente cargada. Recarga la página.');
+    }
+}
+
+// Función global de respaldo para agregar pagos recurrentes
+function addRecurringPaymentGlobal() {
+    console.log('🌐 Función global addRecurringPaymentGlobal llamada');
+    if (window.financeManager && typeof window.financeManager.addRecurringPayment === 'function') {
+        window.financeManager.addRecurringPayment();
+    } else {
+        console.error('❌ FinanceManager no está disponible');
         alert('Error: La aplicación no está completamente cargada. Recarga la página.');
     }
 }
