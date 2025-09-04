@@ -2,6 +2,7 @@
 class FinanceManager {
     constructor() {
         this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        this.recurringPayments = JSON.parse(localStorage.getItem('recurringPayments')) || [];
         this.editingTransactionId = null;
         this.charts = {
             expenses: null,
@@ -28,6 +29,9 @@ class FinanceManager {
             
             // Cargar meta de ahorro guardada
             this.loadSavedSavingsGoal();
+
+            // Cargar y mostrar pagos recurrentes
+            this.displayRecurringPayments();
 
             // Cargar gráficos de forma diferida para evitar errores de inicialización
             setTimeout(() => {
@@ -71,6 +75,15 @@ class FinanceManager {
         if (savingsInput) {
             savingsInput.addEventListener('input', (e) => {
                 this.updateSavingsGoal(parseFloat(e.target.value) || 0);
+            });
+        }
+
+        // Formulario de pagos recurrentes
+        const recurringForm = document.getElementById('recurring-payment-form');
+        if (recurringForm) {
+            recurringForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.addRecurringPayment();
             });
         }
     }
@@ -1054,21 +1067,169 @@ class FinanceManager {
         }
     }
 
-    // Método para actualizar todos los gráficos
-    updateAllCharts() {
-        try {
-            // Solo actualizar el gráfico activo para evitar problemas de rendimiento
-            const activeTab = document.querySelector('.chart-tab-btn.active');
-            if (activeTab) {
-                const activeChart = activeTab.dataset.chart;
-                setTimeout(() => {
-                    this.updateChart(activeChart);
-                }, 100);
-            }
-        } catch (error) {
-            console.error('Error al actualizar gráficos:', error);
+    // ============ MÉTODOS DE PAGOS RECURRENTES ============
+
+    addRecurringPayment() {
+        const description = document.getElementById('recurring-description').value;
+        const amount = parseFloat(document.getElementById('recurring-amount').value);
+        const frequency = document.getElementById('recurring-frequency').value;
+
+        if (!description || !amount || !frequency) {
+            alert('Por favor completa todos los campos');
+            return;
+        }
+
+        const payment = {
+            id: Date.now().toString(),
+            description,
+            amount,
+            frequency,
+            nextDue: this.calculateNextDue(frequency)
+        };
+
+        this.recurringPayments.push(payment);
+        this.saveRecurringPayments();
+        this.displayRecurringPayments();
+        this.clearForm('recurring-payment-form');
+        alert('✅ Pago recurrente agregado exitosamente');
+    }
+
+    calculateNextDue(frequency) {
+        const now = new Date();
+        switch(frequency) {
+            case 'semanal':
+                now.setDate(now.getDate() + 7);
+                break;
+            case 'quincenal':
+                now.setDate(now.getDate() + 15);
+                break;
+            case 'mensual':
+                now.setMonth(now.getMonth() + 1);
+                break;
+            case 'anual':
+                now.setFullYear(now.getFullYear() + 1);
+                break;
+        }
+        return now.toISOString().split('T')[0];
+    }
+
+    deleteRecurringPayment(id) {
+        if (confirm('¿Estás seguro de que quieres eliminar este pago recurrente?')) {
+            this.recurringPayments = this.recurringPayments.filter(p => p.id !== id);
+            this.saveRecurringPayments();
+            this.displayRecurringPayments();
+            alert('✅ Pago recurrente eliminado');
         }
     }
+
+    markAsPaid(paymentId) {
+        const payment = this.recurringPayments.find(p => p.id === paymentId);
+        if (!payment) return;
+        
+        // Crear transacción automática
+        const transaction = {
+            id: Date.now().toString(),
+            type: 'expense',
+            description: `${payment.description} (Pago Recurrente)`,
+            amount: payment.amount,
+            category: 'servicios',
+            date: new Date().toISOString().split('T')[0],
+            method: 'transferencia',
+            timestamp: new Date()
+        };
+        
+        this.transactions.push(transaction);
+        
+        // Actualizar fecha de próximo pago
+        payment.nextDue = this.calculateNextDue(payment.frequency);
+        
+        this.saveToLocalStorage();
+        this.saveRecurringPayments();
+        this.updateSummary();
+        this.updateTransactionsTable();
+        this.updateMonthlyAnalysis();
+        this.updateAllCharts();
+        this.displayRecurringPayments();
+        
+        alert(`✅ Pago de ${payment.description} registrado y programado para la próxima fecha`);
+    }
+
+    displayRecurringPayments() {
+        const container = document.querySelector('.payments-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+
+        if (this.recurringPayments.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #666;">No hay pagos recurrentes configurados</p>';
+            return;
+        }
+
+        this.recurringPayments.forEach(payment => {
+            const paymentElement = document.createElement('div');
+            paymentElement.className = 'recurring-payment';
+            
+            // Calcular días hasta vencimiento
+            const today = new Date();
+            const dueDate = new Date(payment.nextDue);
+            const daysDiff = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+            
+            // Agregar indicador visual según días restantes
+            let statusClass = '';
+            let statusText = '';
+            
+            if (daysDiff < 0) {
+                statusClass = 'overdue';
+                statusText = `Vencido hace ${Math.abs(daysDiff)} días`;
+            } else if (daysDiff === 0) {
+                statusClass = 'due-today';
+                statusText = 'Vence hoy';
+            } else if (daysDiff <= 3) {
+                statusClass = 'due-soon';
+                statusText = `Vence en ${daysDiff} días`;
+            } else {
+                statusText = `Vence en ${daysDiff} días`;
+            }
+            
+            paymentElement.innerHTML = `
+                <div class="payment-info">
+                    <strong>${payment.description}</strong>
+                    <small>${this.formatFrequency(payment.frequency)} - Próximo: ${this.formatDate(payment.nextDue)}</small>
+                    <div class="payment-status ${statusClass}">${statusText}</div>
+                </div>
+                <span class="payment-amount">${this.formatCurrency(payment.amount)}</span>
+                <div class="payment-actions">
+                    <button class="btn-action btn-paid" onclick="financeManager.markAsPaid('${payment.id}')" title="Marcar como pagado">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn-remove" onclick="financeManager.deleteRecurringPayment('${payment.id}')" title="Eliminar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(paymentElement);
+        });
+    }
+
+    formatFrequency(frequency) {
+        const frequencies = {
+            'semanal': '📅 Semanal',
+            'quincenal': '📅 Quincenal', 
+            'mensual': '📅 Mensual',
+            'anual': '📅 Anual'
+        };
+        return frequencies[frequency] || frequency;
+    }
+
+    saveRecurringPayments() {
+        try {
+            localStorage.setItem('recurringPayments', JSON.stringify(this.recurringPayments));
+        } catch (error) {
+            console.error('Error al guardar pagos recurrentes:', error);
+        }
+    }
+
+    // ...existing code...
 }
 
 // Funciones globales para los botones
@@ -1083,6 +1244,23 @@ function editTransaction(id) {
 function deleteTransaction(id) {
     if (window.financeManager && typeof window.financeManager.deleteTransaction === 'function') {
         window.financeManager.deleteTransaction(id);
+    } else {
+        alert('Error: La aplicación no está completamente cargada. Recarga la página.');
+    }
+}
+
+// Funciones globales para pagos recurrentes
+function deleteRecurringPayment(id) {
+    if (window.financeManager && typeof window.financeManager.deleteRecurringPayment === 'function') {
+        window.financeManager.deleteRecurringPayment(id);
+    } else {
+        alert('Error: La aplicación no está completamente cargada. Recarga la página.');
+    }
+}
+
+function markAsPaid(id) {
+    if (window.financeManager && typeof window.financeManager.markAsPaid === 'function') {
+        window.financeManager.markAsPaid(id);
     } else {
         alert('Error: La aplicación no está completamente cargada. Recarga la página.');
     }
