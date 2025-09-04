@@ -100,17 +100,42 @@ class FinanceManager {
         // Buscar el botón dentro del formulario de pagos recurrentes
         const recurringButton = document.querySelector('#recurring-payment-form button[type="submit"]');
         if (recurringButton) {
+            // Eventos para desktop
             recurringButton.addEventListener('click', (e) => {
                 console.log('🎯 Click directo en botón de pagos recurrentes');
                 e.preventDefault();
                 this.addRecurringPayment();
             });
-            console.log('✅ Event listener directo en botón configurado');
+
+            // Eventos específicos para móviles
+            recurringButton.addEventListener('touchstart', (e) => {
+                console.log('📱 Touchstart en botón de pagos recurrentes móvil');
+                e.preventDefault();
+            });
+
+            recurringButton.addEventListener('touchend', (e) => {
+                console.log('📱 Touchend en botón de pagos recurrentes móvil');
+                e.preventDefault();
+                this.addRecurringPayment();
+            });
+
+            console.log('✅ Event listeners (click + touch) configurados para móvil');
         } else {
             console.error('❌ Botón de submit de pagos recurrentes no encontrado');
         }
 
-        // ...existing code...
+        // Detección específica para dispositivos móviles
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        console.log('📱 Dispositivo móvil detectado:', this.isMobile);
+
+        if (this.isMobile) {
+            console.log('📱 Aplicando configuraciones específicas para móvil...');
+            this.setupMobileSpecificEvents();
+            this.applyMobileStyles();
+        }
+
+        // Aplicar estilos específicos para móvil
+        this.applyMobileStyles();
     }
 
     setCurrentDate() {
@@ -936,8 +961,7 @@ class FinanceManager {
                             }
                         }
                     }
-                }
-            });
+                });
             console.log('✅ Gráfico de descripciones de gastos creado exitosamente');
         } catch (error) {
             console.error('Error al crear gráfico de descripciones:', error);
@@ -1082,8 +1106,7 @@ class FinanceManager {
                             }
                         }
                     }
-                }
-            });
+                });
             console.log('✅ Gráfico mensual creado exitosamente');
         } catch (error) {
             console.error('Error al crear gráfico mensual:', error);
@@ -1263,6 +1286,80 @@ class FinanceManager {
         }
     }
 
+    // Método específico para dispositivos móviles
+    setupMobileSpecificEvents() {
+        console.log('📱 Configurando eventos específicos para móvil...');
+        
+        // Configuración adicional para formulario de pagos recurrentes en móvil
+        const recurringForm = document.getElementById('recurring-payment-form');
+        const recurringButton = document.querySelector('#recurring-payment-form button[type="submit"]');
+        
+        if (recurringForm && recurringButton) {
+            // Prevenir el comportamiento por defecto en móviles
+            recurringForm.addEventListener('touchstart', (e) => {
+                console.log('📱 Touch detectado en formulario de pagos recurrentes');
+            });
+            
+            // Event listener específico para tap en móvil
+            let tapStartTime = 0;
+            recurringButton.addEventListener('touchstart', (e) => {
+                tapStartTime = Date.now();
+                console.log('📱 Tap start en botón de pagos recurrentes');
+            });
+            
+            recurringButton.addEventListener('touchend', (e) => {
+                const tapDuration = Date.now() - tapStartTime;
+                if (tapDuration < 300) { // Tap corto (no scroll)
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('📱 Tap válido detectado - ejecutando addRecurringPayment');
+                    this.addRecurringPayment();
+                } else {
+                    console.log('📱 Tap demasiado largo - ignorado');
+                }
+            });
+            
+            // Prevenir zoom en double tap
+            recurringButton.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+            });
+        }
+        
+        // Configurar viewport para móviles
+        let viewport = document.querySelector("meta[name=viewport]");
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0');
+        }
+        
+        console.log('✅ Configuraciones móviles aplicadas');
+    }
+
+    // Aplicar estilos específicos para móvil
+    applyMobileStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            @media (max-width: 768px) {
+                .mobile-only-btn {
+                    display: inline-block !important;
+                }
+                
+                /* Hacer botones más grandes en móvil */
+                #recurring-payment-form button {
+                    min-height: 44px;
+                    font-size: 16px;
+                    padding: 12px 16px;
+                    touch-action: manipulation;
+                }
+                
+                /* Prevenir zoom en inputs */
+                input[type="text"], input[type="number"], select {
+                    font-size: 16px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     // ...existing code...
 }
 
@@ -1303,12 +1400,38 @@ function markAsPaid(id) {
 // Función global de respaldo para agregar pagos recurrentes
 function addRecurringPaymentGlobal() {
     console.log('🌐 Función global addRecurringPaymentGlobal llamada');
+    
+    // Detectar si es móvil
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    if (isMobile) {
+        console.log('📱 Ejecutando en dispositivo móvil');
+    }
+    
     if (window.financeManager && typeof window.financeManager.addRecurringPayment === 'function') {
-        window.financeManager.addRecurringPayment();
+        try {
+            // Validación manual de campos para móviles
+            const description = document.getElementById('recurring-description').value;
+            const amount = document.getElementById('recurring-amount').value;
+            const frequency = document.getElementById('recurring-frequency').value;
+            
+            console.log('📝 Validación global - Datos:', { description, amount, frequency });
+            
+            if (!description || !amount || !frequency) {
+                alert('Por favor completa todos los campos del formulario');
+                return false;
+            }
+            
+            window.financeManager.addRecurringPayment();
+            return false;
+        } catch (error) {
+            console.error('Error en función global:', error);
+            alert('Error al procesar el pago recurrente. Intenta nuevamente.');
+        }
     } else {
         console.error('❌ FinanceManager no está disponible');
         alert('Error: La aplicación no está completamente cargada. Recarga la página.');
     }
+    return false;
 }
 
 // Inicializar aplicación

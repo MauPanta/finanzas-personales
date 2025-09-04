@@ -255,8 +255,13 @@
                                         <small>Para pagos que ocurren cada 15 días exactos</small>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary" onclick="addRecurringPaymentGlobal(); return false;">
+                                <button type="submit" class="btn btn-primary" onclick="addRecurringPaymentGlobal(); return false;" ontouchend="addRecurringPaymentGlobal(); return false;">
                                     <i class="fas fa-repeat"></i> Agregar
+                                </button>
+                                
+                                <!-- Botón alternativo específico para móviles -->
+                                <button type="button" class="btn btn-primary mobile-only-btn" onclick="addRecurringPaymentGlobal()" style="display: none; margin-left: 10px;">
+                                    <i class="fas fa-mobile-alt"></i> Agregar (Móvil)
                                 </button>
                             </div>
                         </form>
